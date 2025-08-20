@@ -1,0 +1,20 @@
+appId: com.example.app
+directories:
+  output: release
+files:
+  - dist/**
+  - dist-electron/**
+extraMetadata:
+  main: dist-electron/electron/main.js
+win:
+  target:
+    - nsis
+  artifactName: "${name}-${version}-win.${ext}"
+mac:
+  target:
+    - dmg
+  artifactName: "${name}-${version}-mac.${ext}"
+linux:
+  target:
+    - AppImage
+  artifactName: "${name}-${version}-linux.${ext}" 
