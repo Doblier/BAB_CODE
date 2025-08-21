@@ -26,11 +26,23 @@ contextBridge.exposeInMainWorld("api", {
   onTerminalClosed: (callback: (terminalId: string, code: number) => void) => 
     ipcRenderer.on('terminal-closed', (_, terminalId, code) => callback(terminalId, code)),
   
+  // Menu action listener
+  onMenuAction: (callback: (action: string) => void) => 
+    ipcRenderer.on('menu-action', (_, action) => callback(action)),
+  
   // Remove listeners
   removeAllListeners: (channel: string) => 
     ipcRenderer.removeAllListeners(channel),
 
   // Folder dialog
-  openFolder: () => ipcRenderer.invoke('open-folder-dialog')
-  ,readDirTree: (rootPath: string) => ipcRenderer.invoke('read-dir-tree', rootPath)
+  openFolder: () => ipcRenderer.invoke('open-folder-dialog'),
+  readDirTree: (rootPath: string) => ipcRenderer.invoke('read-dir-tree', rootPath),
+  readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
+  writeFile: (filePath: string, content: string) => ipcRenderer.invoke('write-file', filePath, content),
+  createFile: (dirPath: string, fileName: string) => ipcRenderer.invoke('create-file', dirPath, fileName),
+  createFolder: (dirPath: string, folderName: string) => ipcRenderer.invoke('create-folder', dirPath, folderName),
+  renameFile: (oldPath: string, newPath: string) => ipcRenderer.invoke('rename-file', oldPath, newPath),
+  deleteFile: (path: string) => ipcRenderer.invoke('delete-file', path)
+  
+
 }); 

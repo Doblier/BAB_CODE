@@ -12,11 +12,169 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const terminalProcesses = new Map<string, pty.IPty | ChildProcess>();
 let mainWindow: BrowserWindow | null = null;
 
+function createMenu() {
+  const template: Electron.MenuItemConstructorOptions[] = [
+         {
+       label: 'File',
+       submenu: [
+         {
+           label: 'New Text File',
+           accelerator: 'Ctrl+N',
+           click: () => {
+             mainWindow?.webContents.send('menu-action', 'new-text-file');
+           }
+         },
+         {
+           label: 'New Folder',
+           accelerator: 'Ctrl+Shift+N',
+           click: () => {
+             mainWindow?.webContents.send('menu-action', 'new-folder');
+           }
+         },
+         { type: 'separator' },
+         {
+           label: 'New Window',
+           accelerator: 'Ctrl+Shift+N',
+           click: () => {
+             createWindow();
+           }
+         },
+         { type: 'separator' },
+         {
+           label: 'Exit',
+           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+           click: () => {
+             app.quit();
+           }
+         }
+       ]
+     },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+                 { role: 'selectAll' }
+      ]
+    },
+         {
+       label: 'View',
+       submenu: [
+         { role: 'reload' },
+         { role: 'forceReload' },
+         { role: 'toggleDevTools' },
+         { type: 'separator' },
+         { role: 'resetZoom' },
+         { role: 'zoomIn' },
+         { role: 'zoomOut' },
+         { type: 'separator' },
+         { role: 'togglefullscreen' }
+       ]
+     },
+     {
+       label: 'Layout',
+       submenu: [
+         {
+           label: 'Toggle Left Sidebar',
+           accelerator: 'Ctrl+B',
+           click: () => {
+             mainWindow?.webContents.send('menu-action', 'toggle-left-sidebar');
+           }
+         },
+         {
+           label: 'Toggle Bottom Panel',
+           accelerator: 'Ctrl+J',
+           click: () => {
+             mainWindow?.webContents.send('menu-action', 'toggle-bottom-panel');
+           }
+         },
+         {
+           label: 'Toggle Right Sidebar',
+           accelerator: 'Ctrl+Shift+B',
+           click: () => {
+             mainWindow?.webContents.send('menu-action', 'toggle-right-sidebar');
+           }
+         },
+         { type: 'separator' },
+         {
+           label: 'Settings',
+           accelerator: 'Ctrl+,',
+           click: () => {
+             mainWindow?.webContents.send('menu-action', 'open-settings');
+           }
+         }
+       ]
+     },
+    {
+      label: 'Terminal',
+      submenu: [
+        {
+          label: 'New Terminal',
+          accelerator: 'Ctrl+`',
+          click: () => {
+            mainWindow?.webContents.send('menu-action', 'new-terminal');
+          }
+        },
+        {
+          label: 'AI Terminal',
+          accelerator: 'Ctrl+Shift+`',
+          click: () => {
+            mainWindow?.webContents.send('menu-action', 'ai-terminal');
+          }
+        }
+      ]
+    },
+         {
+       label: 'Window',
+       submenu: [
+         { role: 'minimize' },
+         { role: 'close' },
+         { type: 'separator' },
+         {
+           label: 'Maximize/Restore',
+           accelerator: 'F11',
+           click: () => {
+             if (mainWindow?.isMaximized()) {
+               mainWindow.unmaximize();
+             } else {
+               mainWindow?.maximize();
+             }
+           }
+         }
+       ]
+     },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'About BAB Code Editor',
+          click: () => {
+            dialog.showMessageBox(mainWindow!, {
+              type: 'info',
+              title: 'About BAB Code Editor',
+              message: 'BAB Code Editor',
+              detail: 'A modern code editor built with Electron and React'
+            });
+          }
+        }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 720,
-    title: "TEST01 - IDE",
+    title: "BAB Code Editor",
+    autoHideMenuBar: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -45,30 +203,24 @@ function createWindow() {
   const devUrl = process.env.VITE_DEV_SERVER_URL;
   
   if (devUrl) {
-    console.log("Loading URL from env:", devUrl);
     mainWindow.loadURL(devUrl).catch(err => {
-      console.error("Failed to load URL:", err);
       mainWindow?.loadFile(path.join(__dirname, "../dist/index.html"));
     });
   } else {
-    console.log("Auto-detecting Vite server...");
     findViteServer().then(url => {
       if (url) {
-        console.log("Found Vite server at:", url);
         mainWindow?.loadURL(url);
       } else {
-        console.log("No Vite server found, loading production build");
         mainWindow?.loadFile(path.join(__dirname, "../dist/index.html"));
       }
     }).catch(err => {
-      console.error("Error finding Vite server:", err);
       mainWindow?.loadFile(path.join(__dirname, "../dist/index.html"));
     });
   }
 
-  // Open DevTools in development
+  // Open DevTools for debugging
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools(); // Disabled to prevent autofill errors
   }
 }
 
@@ -136,6 +288,114 @@ ipcMain.handle('read-dir-tree', async (_evt, rootPath: string) => {
   }
 });
 
+// Create file in directory
+ipcMain.handle('create-file', async (_evt, dirPath: string, fileName: string) => {
+  try {
+    if (!fileName || /[\\/:*?"<>|]/.test(fileName)) {
+      return { ok: false, error: 'Invalid file name' };
+    }
+    const target = path.join(dirPath, fileName);
+    if (fs.existsSync(target)) {
+      return { ok: false, error: 'File already exists' };
+    }
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, '');
+    return { ok: true, path: target };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+
+// Create folder in directory
+ipcMain.handle('create-folder', async (_evt, dirPath: string, folderName: string) => {
+  try {
+    if (!folderName || /[\\/:*?"<>|]/.test(folderName)) {
+      return { ok: false, error: 'Invalid folder name' };
+    }
+    const target = path.join(dirPath, folderName);
+    if (fs.existsSync(target)) {
+      return { ok: false, error: 'Folder already exists' };
+    }
+    fs.mkdirSync(target, { recursive: true });
+    return { ok: true, path: target };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+
+// Read file content
+ipcMain.handle('read-file', async (_evt, filePath: string) => {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return { ok: false, error: 'File does not exist' };
+    }
+    
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) {
+      return { ok: false, error: 'Not a file' };
+    }
+    
+    const content = fs.readFileSync(filePath, 'utf8');
+    return { ok: true, content };
+  } catch (e) {
+    console.error('Error reading file:', e);
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+
+// Write file content
+ipcMain.handle('write-file', async (_evt, filePath: string, content: string) => {
+  try {
+    // Ensure directory exists
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    fs.writeFileSync(filePath, content, 'utf8');
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+
+// Rename file or folder
+ipcMain.handle('rename-file', async (_evt, oldPath: string, newPath: string) => {
+  try {
+    if (!fs.existsSync(oldPath)) {
+      return { ok: false, error: 'File or folder does not exist' };
+    }
+    
+    if (fs.existsSync(newPath)) {
+      return { ok: false, error: 'Target already exists' };
+    }
+    
+    fs.renameSync(oldPath, newPath);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+
+// Delete file or folder
+ipcMain.handle('delete-file', async (_evt, filePath: string) => {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return { ok: false, error: 'File or folder does not exist' };
+    }
+    
+    const stats = fs.statSync(filePath);
+    if (stats.isDirectory()) {
+      fs.rmdirSync(filePath, { recursive: true });
+    } else {
+      fs.unlinkSync(filePath);
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+
 // Handle terminal creation using hybrid approach: node-pty with child_process fallback
 ipcMain.handle('create-terminal', async (event, terminalType: string, terminalId: string) => {
   try {
@@ -143,7 +403,7 @@ ipcMain.handle('create-terminal', async (event, terminalType: string, terminalId
     let args: string[] = [];
     let cwd = process.cwd();
     
-    console.log(`Creating native terminal: ${terminalType} (${terminalId})`);
+
     
     switch (terminalType) {
       case 'powershell':
@@ -231,11 +491,9 @@ ipcMain.handle('create-terminal', async (event, terminalType: string, terminalId
         handleFlowControl: true,
       });
       
-      isNodePty = true;
-      console.log(`✓ Using node-pty for ${terminalType} terminal (PID: ${terminalProcess.pid})`);
+             isNodePty = true;
       
-    } catch (ptyError) {
-      console.warn(`node-pty failed, falling back to child_process:`, ptyError);
+         } catch (ptyError) {
       
       // Fallback to child_process (reliable but less features)
       terminalProcess = spawn(shell, args, {
@@ -257,8 +515,7 @@ ipcMain.handle('create-terminal', async (event, terminalType: string, terminalId
         detached: false
       });
       
-      isNodePty = false;
-      console.log(`✓ Using child_process fallback for ${terminalType} terminal (PID: ${terminalProcess.pid})`);
+             isNodePty = false;
     }
 
     // Store the terminal process
@@ -295,11 +552,10 @@ ipcMain.handle('create-terminal', async (event, terminalType: string, terminalId
         }
       });
 
-      terminalProcess.onExit((e: { exitCode: number; signal?: number }) => {
-        console.log(`Terminal ${terminalId} exited with code: ${e.exitCode}, signal: ${e.signal}`);
-        mainWindow?.webContents.send('terminal-closed', terminalId, e.exitCode);
-        terminalProcesses.delete(terminalId);
-      });
+             terminalProcess.onExit((e: { exitCode: number; signal?: number }) => {
+         mainWindow?.webContents.send('terminal-closed', terminalId, e.exitCode);
+         terminalProcesses.delete(terminalId);
+       });
 
       // No welcome message - start clean
 
@@ -352,16 +608,14 @@ ipcMain.handle('create-terminal', async (event, terminalType: string, terminalId
       terminalProcess.stdout?.on('data', handleOutput);
       terminalProcess.stderr?.on('data', handleOutput);
 
-      terminalProcess.on('exit', (code: number | null, signal: string | null) => {
-        console.log(`Terminal ${terminalId} exited with code: ${code}, signal: ${signal}`);
-        mainWindow?.webContents.send('terminal-closed', terminalId, code || 0);
-        terminalProcesses.delete(terminalId);
-      });
+             terminalProcess.on('exit', (code: number | null, signal: string | null) => {
+         mainWindow?.webContents.send('terminal-closed', terminalId, code || 0);
+         terminalProcesses.delete(terminalId);
+       });
 
-      terminalProcess.on('error', (error: Error) => {
-        console.error(`Terminal ${terminalId} error:`, error);
-        mainWindow?.webContents.send('terminal-output', terminalId, `\r\n\x1b[31mTerminal Error: ${error.message}\x1b[0m\r\n`);
-      });
+       terminalProcess.on('error', (error: Error) => {
+         mainWindow?.webContents.send('terminal-output', terminalId, `\r\n\x1b[31mTerminal Error: ${error.message}\x1b[0m\r\n`);
+       });
 
       // No initialization - let PowerShell start naturally
 
@@ -373,10 +627,9 @@ ipcMain.handle('create-terminal', async (event, terminalType: string, terminalId
         backend: 'child_process'
       };
     }
-  } catch (error: unknown) {
-    console.error('Error creating terminal:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-  }
+     } catch (error: unknown) {
+     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+   }
 });
 
 // Handle terminal input - simple passthrough
@@ -390,10 +643,9 @@ ipcMain.handle('terminal-input', async (event, terminalId: string, input: string
         terminalProcess.stdin?.write(input);
       }
       return { success: true };
-    } catch (error) {
-      console.error(`Error writing to terminal ${terminalId}:`, error);
-      return { success: false, error: error instanceof Error ? error.message : 'Write failed' };
-    }
+         } catch (error) {
+       return { success: false, error: error instanceof Error ? error.message : 'Write failed' };
+     }
   }
   return { success: false, error: 'Terminal not found' };
 });
@@ -403,20 +655,15 @@ ipcMain.handle('terminal-resize', async (event, terminalId: string, cols: number
   const terminalProcess = terminalProcesses.get(terminalId);
   if (terminalProcess) {
     try {
-      // Check if it's node-pty (has resize method)
-      if ('resize' in terminalProcess) {
-        // node-pty
-        terminalProcess.resize(cols, rows);
-        console.log(`Terminal ${terminalId} resized to: ${cols}x${rows} (node-pty)`);
-      } else {
-        // child_process - doesn't support resize, but we can log it
-        console.log(`Terminal ${terminalId} resize requested: ${cols}x${rows} (child_process - not supported)`);
-      }
+             // Check if it's node-pty (has resize method)
+       if ('resize' in terminalProcess) {
+         // node-pty
+         terminalProcess.resize(cols, rows);
+       }
       return { success: true };
-    } catch (error) {
-      console.error(`Error resizing terminal ${terminalId}:`, error);
-      return { success: false, error: error instanceof Error ? error.message : 'Resize failed' };
-    }
+         } catch (error) {
+       return { success: false, error: error instanceof Error ? error.message : 'Resize failed' };
+     }
   }
   return { success: false, error: 'Terminal not found' };
 });
@@ -425,20 +672,23 @@ ipcMain.handle('terminal-resize', async (event, terminalId: string, cols: number
 ipcMain.handle('close-terminal', async (event, terminalId: string) => {
   const terminalProcess = terminalProcesses.get(terminalId);
   if (terminalProcess) {
-    try {
-      terminalProcess.kill('SIGTERM');
-      terminalProcesses.delete(terminalId);
-      console.log(`Terminal ${terminalId} closed`);
-      return { success: true };
-    } catch (error) {
-      console.error(`Error closing terminal ${terminalId}:`, error);
-      return { success: false, error: error instanceof Error ? error.message : 'Close failed' };
-    }
+         try {
+       terminalProcess.kill('SIGTERM');
+       terminalProcesses.delete(terminalId);
+       return { success: true };
+     } catch (error) {
+       return { success: false, error: error instanceof Error ? error.message : 'Close failed' };
+     }
   }
   return { success: false, error: 'Terminal not found' };
 });
 
+
+
+
+
 app.whenReady().then(() => {
+  createMenu();
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -449,10 +699,9 @@ app.on("window-all-closed", () => {
   // Kill all terminal processes
   terminalProcesses.forEach((process, terminalId) => {
     try {
-      console.log(`Cleaning up terminal: ${terminalId}`);
       process.kill('SIGTERM');
     } catch (error) {
-      console.error(`Error killing terminal ${terminalId}:`, error);
+      // Silent cleanup
     }
   });
   terminalProcesses.clear();

@@ -7,17 +7,63 @@ import EnhancedTerminal from './components/EnhancedTerminal';
 export default function App() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [activeFile, setActiveFile] = useState<string | null>(null);
-	const [projectRoot, setProjectRoot] = useState<string | null>(null);
+	const [projectRoot, setProjectRoot] = useState<string | null>('E:\\Testing_Files');
 	const [showTerminal, setShowTerminal] = useState(true);
+
+
+
+	// Handle menu actions
+	React.useEffect(() => {
+		if ((window as any).api?.onMenuAction) {
+			(window as any).api.onMenuAction((action: string) => {
+				switch (action) {
+					case 'new-text-file':
+						// Trigger new file input in sidebar
+						document.dispatchEvent(new CustomEvent('trigger-new-file'));
+						break;
+					case 'new-folder':
+						// Trigger new folder input in sidebar
+						document.dispatchEvent(new CustomEvent('trigger-new-folder'));
+						break;
+					case 'new-terminal':
+						// Show terminal if hidden
+						setShowTerminal(true);
+						break;
+					case 'ai-terminal':
+						// Show AI assistant
+						document.dispatchEvent(new CustomEvent('trigger-ai-assistant'));
+						break;
+					case 'toggle-left-sidebar':
+						// Toggle sidebar collapse
+						setSidebarCollapsed(!sidebarCollapsed);
+						break;
+					case 'toggle-bottom-panel':
+						// Toggle terminal visibility
+						setShowTerminal(!showTerminal);
+						break;
+					case 'toggle-right-sidebar':
+						// Toggle right sidebar (placeholder for future feature)
+						break;
+					case 'open-settings':
+						// Open settings (placeholder for future feature)
+						break;
+				}
+			});
+		}
+	}, [sidebarCollapsed, showTerminal]);
 
 	return (
 		<div className="ide-container">
 			<Sidebar
 				collapsed={sidebarCollapsed}
 				onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-				onFileSelect={(path) => setActiveFile(path)}
-				rootPath={projectRoot}
-				onLoadTree={(root) => setProjectRoot(root)}
+						onFileSelect={(path) => {
+			setActiveFile(path);
+		}}
+		rootPath={projectRoot}
+		onLoadTree={(root) => {
+			setProjectRoot(root);
+		}}
 			/>
 
 			<div className="main-content">

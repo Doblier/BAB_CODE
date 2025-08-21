@@ -33,20 +33,7 @@ interface TerminalTab {
   promptLength: number;
 }
 
-declare global {
-  interface Window {
-    api: {
-      createTerminal: (terminalType: string, terminalId: string) => Promise<any>;
-      sendTerminalInput: (terminalId: string, input: string) => Promise<any>;
-      resizeTerminal: (terminalId: string, cols: number, rows: number) => Promise<any>;
-      closeTerminal: (terminalId: string) => Promise<any>;
-      onTerminalOutput: (callback: (terminalId: string, data: string) => void) => void;
-      onTerminalError: (callback: (terminalId: string, data: string) => void) => void;
-      onTerminalClosed: (callback: (terminalId: string, code: number) => void) => void;
-      removeAllListeners: (channel: string) => void;
-    };
-  }
-}
+// API interface is now defined in src/types/global.d.ts
 
 // Helper function to redraw the current line
 const redrawLine = (terminal: XTerm, tab: TerminalTab) => {

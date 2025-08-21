@@ -8,5 +8,5 @@
     "types": ["node"],
     "outDir": "dist-electron"
   },
-  "include": ["electron/*.ts", "src/**/*.tsx", "src/**/*.ts"]
+  "include": ["electron/*.ts", "src/**/*.tsx", "src/**/*.ts", "src/**/*.d.ts"]
 } 

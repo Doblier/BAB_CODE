@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import CodeEditor from './CodeEditor';
 import './EditorArea.css';
 
 interface EditorAreaProps {
@@ -19,22 +20,69 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [showAssistant, setShowAssistant] = useState<boolean>(false);
 
-  useEffect(() => {
+  // Listen for AI assistant trigger from menu
+  React.useEffect(() => {
+    const handleAIAssistant = () => {
+      setShowAssistant(true);
+    };
+
+    document.addEventListener('trigger-ai-assistant', handleAIAssistant);
+
+    return () => {
+      document.removeEventListener('trigger-ai-assistant', handleAIAssistant);
+    };
+  }, []);
+
+    useEffect(() => {
     if (activeFile && !tabs.find(tab => tab.path === activeFile)) {
-      // Simulate file content - in a real app, you'd read from the filesystem
-      const fileName = activeFile.split('/').pop() || activeFile;
-      const newTab: Tab = {
-        path: activeFile,
-        name: fileName,
-        content: `// ${fileName}\n// This is a placeholder content for ${activeFile}\n\nimport React from 'react';\n\nexport default function ${fileName.replace('.tsx', '').replace('.ts', '')}() {\n  return (\n    <div>\n      <h1>${fileName}</h1>\n      <p>Edit this file to see changes!</p>\n    </div>\n  );\n}`,
-        modified: false
-      };
-      setTabs(prev => [...prev, newTab]);
-      setActiveTab(activeFile);
-    } else if (activeFile) {
-      setActiveTab(activeFile);
-    }
-  }, [activeFile, tabs]);
+      // Read actual file content from filesystem
+      const readFileContent = async () => {
+        try {
+          if ((window as any).api?.readFile) {
+            const result = await (window as any).api.readFile(activeFile);
+            const fileName = activeFile.split(/[\\/]/).pop() || activeFile;
+            
+            const newTab: Tab = {
+              path: activeFile,
+              name: fileName,
+              content: result.ok ? (result.content || '') : '',
+              modified: false
+            };
+            
+            setTabs(prev => [...prev, newTab]);
+            setActiveTab(activeFile);
+           } else {
+             // If API not available, create empty tab
+             const fileName = activeFile.split(/[\\/]/).pop() || activeFile;
+             const newTab: Tab = {
+               path: activeFile,
+               name: fileName,
+               content: '',
+               modified: false
+             };
+             setTabs(prev => [...prev, newTab]);
+             setActiveTab(activeFile);
+           }
+         } catch (error) {
+           console.error('Error reading file:', error);
+           // If error occurs, create empty tab
+           const fileName = activeFile.split(/[\\/]/).pop() || activeFile;
+           const newTab: Tab = {
+             path: activeFile,
+             name: fileName,
+             content: '',
+             modified: false
+           };
+           setTabs(prev => [...prev, newTab]);
+           setActiveTab(activeFile);
+         }
+       };
+       
+       readFileContent();
+     } else if (activeFile) {
+       setActiveTab(activeFile);
+     }
+   }, [activeFile, tabs]);
 
   const closeTab = (tabPath: string) => {
     setTabs(prev => prev.filter(tab => tab.path !== tabPath));
@@ -52,42 +100,197 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
     ));
   };
 
+  // Auto-save functionality
+  const saveFile = async (tabPath: string) => {
+    const tab = tabs.find(t => t.path === tabPath);
+    if (tab && tab.modified) {
+      try {
+        if ((window as any).api?.writeFile) {
+          const result = await (window as any).api.writeFile(tabPath, tab.content);
+          if (result.ok) {
+            setTabs(prev => prev.map(t => 
+              t.path === tabPath 
+                ? { ...t, modified: false }
+                : t
+            ));
+          }
+        }
+      } catch (error) {
+        console.error('Error saving file:', error);
+      }
+    }
+  };
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S to save
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (activeTab) {
+          saveFile(activeTab);
+        }
+      }
+      
+      // Ctrl+W to close tab
+      if (e.ctrlKey && e.key === 'w') {
+        e.preventDefault();
+        if (activeTab) {
+          closeTab(activeTab);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, tabs]);
+
+  // Auto-save on content change (debounced)
+  useEffect(() => {
+    if (activeTab) {
+      const timeoutId = setTimeout(() => {
+        saveFile(activeTab);
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [activeTab, tabs.find(t => t.path === activeTab)?.content]);
+
   const currentTab = tabs.find(tab => tab.path === activeTab);
+  
+  // Get file icon based on extension
+  const getFileIcon = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'html':
+      case 'htm':
+        return '🌐';
+      case 'css':
+        return '🎨';
+      case 'js':
+      case 'jsx':
+        return '📜';
+      case 'ts':
+      case 'tsx':
+        return '📘';
+      case 'json':
+        return '📋';
+      case 'py':
+        return '🐍';
+      case 'java':
+        return '☕';
+      case 'cpp':
+      case 'c':
+        return '⚙️';
+      case 'php':
+        return '🐘';
+      case 'rb':
+        return '💎';
+      case 'go':
+        return '🐹';
+      case 'rs':
+        return '🦀';
+      case 'sql':
+        return '🗄️';
+      case 'md':
+        return '📝';
+      case 'txt':
+        return '📄';
+      case 'xml':
+        return '📄';
+      case 'yaml':
+      case 'yml':
+        return '⚙️';
+      case 'sh':
+      case 'bat':
+      case 'cmd':
+        return '💻';
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+      case 'gif':
+      case 'svg':
+        return '🖼️';
+      case 'mp4':
+      case 'avi':
+      case 'mov':
+        return '🎬';
+      case 'mp3':
+      case 'wav':
+        return '🎵';
+      case 'zip':
+      case 'rar':
+      case '7z':
+        return '📦';
+      default:
+        return '📄';
+    }
+  };
+  
+
+
+
 
   return (
     <div className="editor-area">
       <div className="tabs">
-        {tabs.map(tab => (
-          <div 
-            key={tab.path} 
-            className={`tab ${activeTab === tab.path ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.path)}
-          >
-            <span className="tab-name">{tab.name}</span>
-            {tab.modified && <span className="modified-indicator">•</span>}
-            <button 
-              className="close-tab"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeTab(tab.path);
-              }}
-            >
-              ×
-            </button>
-          </div>
-        ))}
+                 {tabs.map(tab => (
+           <div 
+             key={tab.path} 
+             className={`tab ${activeTab === tab.path ? 'active' : ''}`}
+             onClick={() => setActiveTab(tab.path)}
+           >
+             <span className="tab-icon">{getFileIcon(tab.name)}</span>
+             <span className="tab-name">{tab.name}</span>
+             {tab.modified && <span className="modified-indicator">•</span>}
+             <button 
+               className="save-tab"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 saveFile(tab.path);
+               }}
+               title="Save (Ctrl+S)"
+             >
+               💾
+             </button>
+             <button 
+               className="close-tab"
+               onClick={(e) => {
+                 e.stopPropagation();
+                 closeTab(tab.path);
+               }}
+               title="Close (Ctrl+W)"
+             >
+               ×
+             </button>
+           </div>
+         ))}
       </div>
       <div className="editor-split">
         <div className="work-area">
-          {currentTab ? (
-            <textarea
-              value={currentTab.content}
-              onChange={(e) => updateTabContent(currentTab.path, e.target.value)}
-              placeholder="Start typing..."
-              className="code-editor"
-            />
-          ) : (
-            <div className="welcome-screen">
+                                                             {currentTab ? (
+                <textarea
+                  value={currentTab.content}
+                  onChange={(e) => updateTabContent(currentTab.path, e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    background: '#1e1e1e',
+                    color: '#d4d4d4',
+                    border: 'none',
+                    outline: 'none',
+                    padding: '20px',
+                    fontFamily: 'Consolas, Monaco, monospace',
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                    resize: 'none',
+                    cursor: 'text'
+                  }}
+                  autoFocus
+                  spellCheck={false}
+                />
+            ) : (
+                           <div className="welcome-screen">
               <h2 onClick={() => {
                 // Clicking the title opens a CMD terminal tab in the bottom terminal area
                 const event = new CustomEvent('open-default-terminal', { detail: { type: 'cmd' } });

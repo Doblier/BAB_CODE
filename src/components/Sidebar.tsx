@@ -19,14 +19,33 @@ interface FileNode {
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, rootPath, onLoadTree }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [files, setFiles] = useState<FileNode[]>([]);
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  // Hover actions removed; icons are now in the header
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [showNewFileInput, setShowNewFileInput] = useState(false);
+  const [showNewFolderInput, setShowNewFolderInput] = useState(false);
+  const [newFileName, setNewFileName] = useState('');
+  const [newFolderName, setNewFolderName] = useState('');
+  
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    targetNode: FileNode | null;
+  }>({
+    visible: false,
+    x: 0,
+    y: 0,
+    targetNode: null
+  });
 
   // Load directory tree when rootPath changes
   React.useEffect(() => {
     const load = async () => {
-      if (!rootPath || !(window as any).api?.readDirTree) return;
+      if (!rootPath || !(window as any).api?.readDirTree) {
+        return;
+      }
       const res = await (window as any).api.readDirTree(rootPath);
       if (res?.ok) {
         setFiles([{ name: res.root, path: res.root, type: 'folder', children: res.tree }]);
@@ -36,6 +55,41 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     };
     load();
   }, [rootPath, onLoadTree]);
+
+  // Listen for menu-triggered actions
+  React.useEffect(() => {
+    const handleNewFile = () => {
+      setShowNewFileInput(true);
+      setShowNewFolderInput(false);
+    };
+
+    const handleNewFolder = () => {
+      setShowNewFolderInput(true);
+      setShowNewFileInput(false);
+    };
+
+    document.addEventListener('trigger-new-file', handleNewFile);
+    document.addEventListener('trigger-new-folder', handleNewFolder);
+
+    return () => {
+      document.removeEventListener('trigger-new-file', handleNewFile);
+      document.removeEventListener('trigger-new-folder', handleNewFolder);
+    };
+  }, []);
+
+  // Close context menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu.visible) {
+        closeContextMenu();
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [contextMenu.visible]);
 
   const toggleFolder = (folderPath: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -57,24 +111,149 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     }
   };
 
-  const createNewFile = (parentPath: string) => {
-    const fileName = prompt('Enter file name:');
-    if (fileName) {
-      // In a real app, you'd create the file on disk
-      console.log(`Creating new file: ${parentPath}/${fileName}`);
-      // Refresh the tree to show the new file
+  const createNewFile = async (parentPath: string, fileName: string) => {
+    if (!fileName.trim()) return;
+    try {
+      if ((window as any).api?.createFile) {
+        const res = await (window as any).api.createFile(parentPath, fileName.trim());
+        if (!res?.ok) {
+          alert(res?.error || 'Failed to create file');
+        }
+      } else {
+        // Simulated file creation
+      }
+    } finally {
+      setNewFileName('');
+      setShowNewFileInput(false);
       refreshTree();
     }
   };
 
-  const createNewFolder = (parentPath: string) => {
-    const folderName = prompt('Enter folder name:');
-    if (folderName) {
-      // In a real app, you'd create the folder on disk
-      console.log(`Creating new folder: ${parentPath}/${folderName}`);
-      // Refresh the tree to show the new folder
+  const createNewFolder = async (parentPath: string, folderName: string) => {
+    if (!folderName.trim()) return;
+    try {
+      if ((window as any).api?.createFolder) {
+        const res = await (window as any).api.createFolder(parentPath, folderName.trim());
+        if (!res?.ok) {
+          alert(res?.error || 'Failed to create folder');
+        }
+      } else {
+        // Simulated folder creation
+      }
+    } finally {
+      setNewFolderName('');
+      setShowNewFolderInput(false);
       refreshTree();
     }
+  };
+
+  const handleNewFileSubmit = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!rootPath) {
+        alert('Please open a folder first');
+        return;
+      }
+      createNewFile(rootPath, newFileName);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowNewFileInput(false);
+      setNewFileName('');
+    }
+  };
+
+  const handleNewFolderSubmit = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!rootPath) {
+        alert('Please open a folder first');
+        return;
+      }
+      createNewFolder(rootPath, newFolderName);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setShowNewFolderInput(false);
+      setNewFolderName('');
+    }
+  };
+
+  // Context menu handlers
+  const handleContextMenu = (e: React.MouseEvent, node: FileNode) => {
+    e.preventDefault();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      targetNode: node
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu({
+      visible: false,
+      x: 0,
+      y: 0,
+      targetNode: null
+    });
+  };
+
+  const handleRename = async () => {
+    if (!contextMenu.targetNode) return;
+    
+    const oldName = contextMenu.targetNode.name;
+    const newName = prompt('Enter new name:', oldName);
+    
+    if (newName && newName !== oldName) {
+      try {
+        const oldPath = contextMenu.targetNode.path;
+        const newPath = oldPath.replace(oldName, newName);
+        
+        // Use the API to rename the file/folder
+        const result = await window.api.renameFile(oldPath, newPath);
+        if (result.ok) {
+          alert(`Renamed ${oldName} to ${newName}`);
+          refreshTree();
+        } else {
+          alert('Failed to rename: ' + result.error);
+        }
+      } catch (error) {
+        alert('Failed to rename: ' + error);
+      }
+    }
+    closeContextMenu();
+  };
+
+  const handleCopy = async () => {
+    if (!contextMenu.targetNode) return;
+    
+    try {
+      await navigator.clipboard.writeText(contextMenu.targetNode.path);
+      alert('Path copied to clipboard!');
+    } catch (error) {
+      alert('Failed to copy: ' + error);
+    }
+    closeContextMenu();
+  };
+
+  const handleDelete = async () => {
+    if (!contextMenu.targetNode) return;
+    
+    const confirmDelete = confirm(`Are you sure you want to delete "${contextMenu.targetNode.name}"?`);
+    if (confirmDelete) {
+      try {
+        // Use the API to delete the file/folder
+        const result = await window.api.deleteFile(contextMenu.targetNode.path);
+        if (result.ok) {
+          alert(`Deleted ${contextMenu.targetNode.name}`);
+          refreshTree();
+        } else {
+          alert('Failed to delete: ' + result.error);
+        }
+      } catch (error) {
+        alert('Failed to delete: ' + error);
+      }
+    }
+    closeContextMenu();
   };
 
   const filteredFiles = files.filter(file => {
@@ -97,8 +276,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
               onFileSelect(node.path);
             }
           }}
-          onMouseEnter={() => setHoveredItem(node.path)}
-          onMouseLeave={() => setHoveredItem(null)}
+          onContextMenu={(e) => handleContextMenu(e, node)}
         >
           <span className="icon">
             {node.type === 'folder' ? 
@@ -108,56 +286,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
           </span>
           <span className="name">{node.name}</span>
           
-          {/* Hover Icons */}
-          {hoveredItem === node.path && (
-            <div className="hover-icons">
-              {node.type === 'folder' && (
-                <>
-                  <button 
-                    className="hover-icon" 
-                    title="New File"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      createNewFile(node.path);
-                    }}
-                  >
-                    📄
-                  </button>
-                  <button 
-                    className="hover-icon" 
-                    title="New Folder"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      createNewFolder(node.path);
-                    }}
-                  >
-                    📁
-                  </button>
-                </>
-              )}
-              <button 
-                className="hover-icon" 
-                title="Search"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSearch(true);
-                  setSearchTerm('');
-                }}
-              >
-                🔍
-              </button>
-              <button 
-                className="hover-icon" 
-                title="Refresh"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  refreshTree();
-                }}
-              >
-                🔄
-              </button>
-            </div>
-          )}
+          {/* Item-level hover icons removed; actions are in header */}
         </div>
         {node.type === 'folder' && 
          expandedFolders.has(node.path) && 
@@ -168,6 +297,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     ));
   };
 
+
+  
   return (
     <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
@@ -175,14 +306,89 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
           {collapsed ? '→' : '←'}
         </button>
         <span className="title">Explorer</span>
-        <button 
-          className="refresh-btn" 
-          onClick={refreshTree}
-          title="Refresh"
-        >
-          🔄
-        </button>
+        <div className="header-actions">
+                     <button
+             className="header-btn"
+             title="New File"
+             onClick={() => {
+               setShowNewFileInput(true);
+               setShowNewFolderInput(false);
+             }}
+           >
+             📄
+           </button>
+          <button
+            className="header-btn"
+            title="New Folder"
+            onClick={() => {
+              setShowNewFolderInput(true);
+              setShowNewFileInput(false);
+            }}
+          >
+            📁
+          </button>
+          <button
+            className="header-btn"
+            title="Search"
+            onClick={() => { setShowSearch(true); setSearchTerm(''); }}
+          >
+            🔍
+          </button>
+          <button 
+            className="header-btn" 
+            onClick={refreshTree}
+            title="Refresh"
+          >
+            🔄
+          </button>
+        </div>
       </div>
+      
+                    {/* New File Input */}
+       {showNewFileInput && (
+         <div className="new-item-input">
+           <input
+             type="text"
+             placeholder="Enter file name (e.g., index.ts)"
+             value={newFileName}
+             onChange={(e) => setNewFileName(e.target.value)}
+             onKeyDown={handleNewFileSubmit}
+             autoFocus
+           />
+           <button 
+             className="close-input"
+             onClick={() => {
+               setShowNewFileInput(false);
+               setNewFileName('');
+             }}
+           >
+             ×
+           </button>
+         </div>
+       )}
+
+      {/* New Folder Input */}
+      {showNewFolderInput && (
+        <div className="new-item-input">
+          <input
+            type="text"
+            placeholder="Enter folder name"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onKeyDown={handleNewFolderSubmit}
+            autoFocus
+          />
+          <button 
+            className="close-input"
+            onClick={() => {
+              setShowNewFolderInput(false);
+              setNewFolderName('');
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       
       {/* Search Bar */}
       {showSearch && (
@@ -214,6 +420,30 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
       <div className="sidebar-content">
         {renderFileTree(filteredFiles)}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu.visible && (
+        <div 
+          className="context-menu"
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 1000
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="context-menu-item" onClick={handleRename}>
+            <span>📝</span> Rename
+          </div>
+          <div className="context-menu-item" onClick={handleCopy}>
+            <span>📋</span> Copy
+          </div>
+          <div className="context-menu-item" onClick={handleDelete}>
+            <span>🗑️</span> Delete
+          </div>
+        </div>
+      )}
     </div>
   );
 };
