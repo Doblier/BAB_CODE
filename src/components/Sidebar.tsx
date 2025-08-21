@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
+import { 
+  FileText, FileCode, FileJson, FileImage, FileVideo, FileAudio, 
+  FileArchive, File, Folder, FolderOpen, Settings, Package,
+  Type, Code, Database, FileText as MarkdownIcon, GitBranch, Search, RefreshCw,
+  Plus, X, Save, ChevronRight, ChevronDown
+} from 'lucide-react';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -256,6 +262,90 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     closeContextMenu();
   };
 
+  // Get file icon based on extension (VS Code style)
+  const getFileIcon = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const iconSize = 16;
+    const iconColor = '#cccccc';
+    
+    switch (ext) {
+      case 'html':
+      case 'htm':
+        return <FileCode size={iconSize} color="#e34c26" />;
+      case 'css':
+        return <FileCode size={iconSize} color="#1572b6" />;
+      case 'js':
+      case 'jsx':
+        return <FileCode size={iconSize} color="#f7df1e" />;
+      case 'ts':
+      case 'tsx':
+        return <Type size={iconSize} color="#3178c6" />;
+      case 'json':
+        return <FileJson size={iconSize} color="#f7df1e" />;
+      case 'py':
+        return <FileCode size={iconSize} color="#3776ab" />;
+      case 'java':
+        return <FileCode size={iconSize} color="#ed8b00" />;
+      case 'cpp':
+      case 'c':
+        return <FileCode size={iconSize} color="#00599c" />;
+      case 'php':
+        return <FileCode size={iconSize} color="#777bb4" />;
+      case 'rb':
+        return <FileCode size={iconSize} color="#cc342d" />;
+      case 'go':
+        return <FileCode size={iconSize} color="#00add8" />;
+      case 'rs':
+        return <FileCode size={iconSize} color="#ce422b" />;
+      case 'sql':
+        return <Database size={iconSize} color="#336791" />;
+      case 'md':
+        return <MarkdownIcon size={iconSize} color="#000000" />;
+      case 'txt':
+        return <FileText size={iconSize} color={iconColor} />;
+      case 'xml':
+        return <FileCode size={iconSize} color="#f05032" />;
+      case 'yaml':
+      case 'yml':
+        return <Settings size={iconSize} color="#cb171e" />;
+      case 'sh':
+      case 'bat':
+      case 'cmd':
+        return <FileCode size={iconSize} color="#4d4d4d" />;
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+      case 'gif':
+      case 'svg':
+        return <FileImage size={iconSize} color="#4d4d4d" />;
+      case 'mp4':
+      case 'avi':
+      case 'mov':
+        return <FileVideo size={iconSize} color="#4d4d4d" />;
+      case 'mp3':
+      case 'wav':
+        return <FileAudio size={iconSize} color="#4d4d4d" />;
+      case 'zip':
+      case 'rar':
+      case '7z':
+        return <FileArchive size={iconSize} color="#4d4d4d" />;
+      case 'gitignore':
+        return <GitBranch size={iconSize} color="#f05032" />;
+      case 'package.json':
+      case 'package-lock.json':
+        return <Package size={iconSize} color="#cb3837" />;
+      case 'tsconfig.json':
+      case 'vite.config.ts':
+        return <Settings size={iconSize} color="#3178c6" />;
+      case 'license':
+        return <FileText size={iconSize} color="#d73a49" />;
+      case 'readme.md':
+        return <MarkdownIcon size={iconSize} color="#0366d6" />;
+      default:
+        return <File size={iconSize} color={iconColor} />;
+    }
+  };
+
   const filteredFiles = files.filter(file => {
     if (!searchTerm) return true;
     return file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -278,12 +368,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
           }}
           onContextMenu={(e) => handleContextMenu(e, node)}
         >
-          <span className="icon">
-            {node.type === 'folder' ? 
-              (expandedFolders.has(node.path) ? '📁' : '📂') : 
-              '📄'
-            }
-          </span>
+                     <span className="icon">
+             {node.type === 'folder' ? 
+               (expandedFolders.has(node.path) ? 
+                 <FolderOpen size={16} color="#cccccc" /> : 
+                 <Folder size={16} color="#cccccc" />
+               ) : 
+               getFileIcon(node.name)
+             }
+           </span>
           <span className="name">{node.name}</span>
           
           {/* Item-level hover icons removed; actions are in header */}
@@ -306,8 +399,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
           {collapsed ? '→' : '←'}
         </button>
         <span className="title">Explorer</span>
-        <div className="header-actions">
-                     <button
+                 <div className="header-actions">
+           <button
              className="header-btn"
              title="New File"
              onClick={() => {
@@ -315,33 +408,33 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
                setShowNewFolderInput(false);
              }}
            >
-             📄
+             <File size={16} />
            </button>
-          <button
-            className="header-btn"
-            title="New Folder"
-            onClick={() => {
-              setShowNewFolderInput(true);
-              setShowNewFileInput(false);
-            }}
-          >
-            📁
-          </button>
-          <button
-            className="header-btn"
-            title="Search"
-            onClick={() => { setShowSearch(true); setSearchTerm(''); }}
-          >
-            🔍
-          </button>
-          <button 
-            className="header-btn" 
-            onClick={refreshTree}
-            title="Refresh"
-          >
-            🔄
-          </button>
-        </div>
+           <button
+             className="header-btn"
+             title="New Folder"
+             onClick={() => {
+               setShowNewFolderInput(true);
+               setShowNewFileInput(false);
+             }}
+           >
+             <Folder size={16} />
+           </button>
+           <button
+             className="header-btn"
+             title="Search"
+             onClick={() => { setShowSearch(true); setSearchTerm(''); }}
+           >
+             <Search size={16} />
+           </button>
+                       <button 
+              className="header-btn" 
+              onClick={refreshTree}
+              title="Refresh"
+            >
+              <RefreshCw size={16} />
+            </button>
+         </div>
       </div>
       
                     {/* New File Input */}
@@ -355,15 +448,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
              onKeyDown={handleNewFileSubmit}
              autoFocus
            />
-           <button 
-             className="close-input"
-             onClick={() => {
-               setShowNewFileInput(false);
-               setNewFileName('');
-             }}
-           >
-             ×
-           </button>
+                       <button 
+              className="close-input"
+              onClick={() => {
+                setShowNewFileInput(false);
+                setNewFileName('');
+              }}
+            >
+              <X size={14} />
+            </button>
          </div>
        )}
 
@@ -378,15 +471,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
             onKeyDown={handleNewFolderSubmit}
             autoFocus
           />
-          <button 
-            className="close-input"
-            onClick={() => {
-              setShowNewFolderInput(false);
-              setNewFolderName('');
-            }}
-          >
-            ×
-          </button>
+                     <button 
+             className="close-input"
+             onClick={() => {
+               setShowNewFolderInput(false);
+               setNewFolderName('');
+             }}
+           >
+             <X size={14} />
+           </button>
         </div>
       )}
       
@@ -405,15 +498,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
               }
             }}
           />
-          <button 
-            className="close-search"
-            onClick={() => {
-              setShowSearch(false);
-              setSearchTerm('');
-            }}
-          >
-            ×
-          </button>
+                     <button 
+             className="close-search"
+             onClick={() => {
+               setShowSearch(false);
+               setSearchTerm('');
+             }}
+           >
+             <X size={14} />
+           </button>
         </div>
       )}
       
@@ -433,15 +526,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="context-menu-item" onClick={handleRename}>
-            <span>📝</span> Rename
-          </div>
-          <div className="context-menu-item" onClick={handleCopy}>
-            <span>📋</span> Copy
-          </div>
-          <div className="context-menu-item" onClick={handleDelete}>
-            <span>🗑️</span> Delete
-          </div>
+                     <div className="context-menu-item" onClick={handleRename}>
+             <span><FileText size={14} /></span> Rename
+           </div>
+           <div className="context-menu-item" onClick={handleCopy}>
+             <span><FileText size={14} /></span> Copy
+           </div>
+           <div className="context-menu-item" onClick={handleDelete}>
+             <span><X size={14} /></span> Delete
+           </div>
         </div>
       )}
     </div>

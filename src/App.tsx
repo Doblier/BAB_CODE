@@ -7,6 +7,15 @@ import EnhancedTerminal from './components/EnhancedTerminal';
 export default function App() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [activeFile, setActiveFile] = useState<string | null>(null);
+
+	// Handle file changes, including clearing active file
+	const handleFileChange = (filePath: string) => {
+		if (filePath === '' || filePath === null) {
+			setActiveFile(null);
+		} else {
+			setActiveFile(filePath);
+		}
+	};
 	const [projectRoot, setProjectRoot] = useState<string | null>('E:\\Testing_Files');
 	const [showTerminal, setShowTerminal] = useState(true);
 
@@ -57,19 +66,17 @@ export default function App() {
 			<Sidebar
 				collapsed={sidebarCollapsed}
 				onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-						onFileSelect={(path) => {
-			setActiveFile(path);
-		}}
-		rootPath={projectRoot}
-		onLoadTree={(root) => {
-			setProjectRoot(root);
-		}}
+				onFileSelect={handleFileChange}
+				rootPath={projectRoot}
+				onLoadTree={(root) => {
+					setProjectRoot(root);
+				}}
 			/>
 
 			<div className="main-content">
 				<EditorArea 
 					activeFile={activeFile} 
-					onFileChange={(p) => setActiveFile(p)}
+					onFileChange={handleFileChange}
 					onFolderSelect={(folderPath) => {
 						setProjectRoot(folderPath);
 						setActiveFile(null); // Don't open folder as a file

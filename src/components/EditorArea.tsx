@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import CodeEditor from './CodeEditor';
 import './EditorArea.css';
+import { 
+  FileText, FileCode, FileJson, FileImage, FileVideo, FileAudio, 
+  FileArchive, File, Folder, FolderOpen, Settings, Package,
+  Type, Code, Database, FileText as MarkdownIcon, GitBranch, Search, RefreshCw,
+  Plus, X, Save, ChevronRight, ChevronDown
+} from 'lucide-react';
 
 interface EditorAreaProps {
   activeFile: string | null;
@@ -32,6 +38,27 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
       document.removeEventListener('trigger-ai-assistant', handleAIAssistant);
     };
   }, []);
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+W to close active tab
+      if (e.ctrlKey && e.key === 'w' && activeTab) {
+        e.preventDefault();
+        closeTab(activeTab);
+      }
+      // Ctrl+S to save active tab
+      if (e.ctrlKey && e.key === 's' && activeTab) {
+        e.preventDefault();
+        saveFile(activeTab);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeTab]);
 
     useEffect(() => {
     if (activeFile && !tabs.find(tab => tab.path === activeFile)) {
@@ -85,10 +112,21 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
    }, [activeFile, tabs]);
 
   const closeTab = (tabPath: string) => {
-    setTabs(prev => prev.filter(tab => tab.path !== tabPath));
-    if (activeTab === tabPath) {
-      const remainingTabs = tabs.filter(tab => tab.path !== tabPath);
-      setActiveTab(remainingTabs.length > 0 ? remainingTabs[0].path : null);
+    // Calculate remaining tabs first
+    const remainingTabs = tabs.filter(tab => tab.path !== tabPath);
+    
+    // Update tabs state
+    setTabs(remainingTabs);
+    
+    // Update active tab
+    if (activeTab === tabPath || remainingTabs.length === 0) {
+      const newActiveTab = remainingTabs.length > 0 ? remainingTabs[0].path : null;
+      setActiveTab(newActiveTab);
+      
+      // Also notify parent component if no tabs left
+      if (remainingTabs.length === 0) {
+        onFileChange(''); // Clear active file in parent
+      }
     }
   };
 
@@ -158,72 +196,87 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
 
   const currentTab = tabs.find(tab => tab.path === activeTab);
   
-  // Get file icon based on extension
+  // Get file icon based on extension (VS Code style)
   const getFileIcon = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
+    const iconSize = 16;
+    const iconColor = '#cccccc';
+    
     switch (ext) {
       case 'html':
       case 'htm':
-        return '🌐';
+        return <FileCode size={iconSize} color="#e34c26" />;
       case 'css':
-        return '🎨';
+        return <FileCode size={iconSize} color="#1572b6" />;
       case 'js':
       case 'jsx':
-        return '📜';
+        return <FileCode size={iconSize} color="#f7df1e" />;
       case 'ts':
       case 'tsx':
-        return '📘';
+        return <Type size={iconSize} color="#3178c6" />;
       case 'json':
-        return '📋';
+        return <FileJson size={iconSize} color="#f7df1e" />;
       case 'py':
-        return '🐍';
+        return <FileCode size={iconSize} color="#3776ab" />;
       case 'java':
-        return '☕';
+        return <FileCode size={iconSize} color="#ed8b00" />;
       case 'cpp':
       case 'c':
-        return '⚙️';
+        return <FileCode size={iconSize} color="#00599c" />;
       case 'php':
-        return '🐘';
+        return <FileCode size={iconSize} color="#777bb4" />;
       case 'rb':
-        return '💎';
+        return <FileCode size={iconSize} color="#cc342d" />;
       case 'go':
-        return '🐹';
+        return <FileCode size={iconSize} color="#00add8" />;
       case 'rs':
-        return '🦀';
+        return <FileCode size={iconSize} color="#ce422b" />;
       case 'sql':
-        return '🗄️';
+        return <Database size={iconSize} color="#336791" />;
       case 'md':
-        return '📝';
+        return <MarkdownIcon size={iconSize} color="#000000" />;
       case 'txt':
-        return '📄';
+        return <FileText size={iconSize} color={iconColor} />;
       case 'xml':
-        return '📄';
+        return <FileCode size={iconSize} color="#f05032" />;
       case 'yaml':
       case 'yml':
-        return '⚙️';
+        return <Settings size={iconSize} color="#cb171e" />;
       case 'sh':
       case 'bat':
       case 'cmd':
-        return '💻';
+        return <FileCode size={iconSize} color="#4d4d4d" />;
       case 'png':
       case 'jpg':
       case 'jpeg':
       case 'gif':
       case 'svg':
-        return '🖼️';
+        return <FileImage size={iconSize} color="#4d4d4d" />;
       case 'mp4':
       case 'avi':
       case 'mov':
-        return '🎬';
+        return <FileVideo size={iconSize} color="#4d4d4d" />;
       case 'mp3':
       case 'wav':
-        return '🎵';
+        return <FileAudio size={iconSize} color="#4d4d4d" />;
       case 'zip':
       case 'rar':
       case '7z':
-        return '📦';
+        return <FileArchive size={iconSize} color="#4d4d4d" />;
+      case 'gitignore':
+        return <GitBranch size={iconSize} color="#f05032" />;
+      case 'package.json':
+      case 'package-lock.json':
+        return <Package size={iconSize} color="#cb3837" />;
+      case 'tsconfig.json':
+      case 'vite.config.ts':
+        return <Settings size={iconSize} color="#3178c6" />;
+      case 'license':
+        return <FileText size={iconSize} color="#d73a49" />;
+      case 'readme.md':
+        return <MarkdownIcon size={iconSize} color="#0366d6" />;
       default:
-        return '📄';
+        return <File size={iconSize} color={iconColor} />;
     }
   };
   
@@ -243,26 +296,26 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
              <span className="tab-icon">{getFileIcon(tab.name)}</span>
              <span className="tab-name">{tab.name}</span>
              {tab.modified && <span className="modified-indicator">•</span>}
-             <button 
-               className="save-tab"
-               onClick={(e) => {
-                 e.stopPropagation();
-                 saveFile(tab.path);
-               }}
-               title="Save (Ctrl+S)"
-             >
-               💾
-             </button>
-             <button 
-               className="close-tab"
-               onClick={(e) => {
-                 e.stopPropagation();
-                 closeTab(tab.path);
-               }}
-               title="Close (Ctrl+W)"
-             >
-               ×
-             </button>
+                           <button 
+                className="save-tab"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  saveFile(tab.path);
+                }}
+                title="Save (Ctrl+S)"
+              >
+                <Save size={14} />
+              </button>
+              <button 
+                className="close-tab"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeTab(tab.path);
+                }}
+                title="Close (Ctrl+W)"
+              >
+                <X size={14} />
+              </button>
            </div>
          ))}
       </div>

@@ -43,6 +43,4 @@ contextBridge.exposeInMainWorld("api", {
   createFolder: (dirPath: string, folderName: string) => ipcRenderer.invoke('create-folder', dirPath, folderName),
   renameFile: (oldPath: string, newPath: string) => ipcRenderer.invoke('rename-file', oldPath, newPath),
   deleteFile: (path: string) => ipcRenderer.invoke('delete-file', path)
-  
-
-}); 
+});
