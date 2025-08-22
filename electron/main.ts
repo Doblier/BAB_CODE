@@ -227,18 +227,25 @@ function createWindow() {
 // Open folder dialog (default to Desktop on Windows)
 ipcMain.handle('open-folder-dialog', async () => {
   try {
-    const defaultPath = app.getPath('desktop');
-    const result = await dialog.showOpenDialog({
-      title: 'Open Folder',
-      defaultPath,
-      properties: ['openDirectory', 'createDirectory']
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ['openDirectory']
     });
-    if (result.canceled || result.filePaths.length === 0) {
-      return { canceled: true };
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return { ok: true, path: result.filePaths[0] };
+    } else {
+      return { ok: false, error: 'No folder selected' };
     }
-    return { canceled: false, path: result.filePaths[0] };
-  } catch (e) {
-    return { canceled: true, error: e instanceof Error ? e.message : String(e) };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+});
+
+ipcMain.handle('get-current-directory', async () => {
+  try {
+    return { ok: true, path: process.cwd() };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 });
 

@@ -153,14 +153,22 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     }
   };
 
-  const handleNewFileSubmit = (e: React.KeyboardEvent) => {
+  const handleNewFileSubmit = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (!rootPath) {
-        alert('Please open a folder first');
-        return;
+      // Use rootPath if available, otherwise get current directory
+      let targetPath = rootPath;
+      if (!targetPath && (window as any).api?.getCurrentDirectory) {
+        const result = await (window as any).api.getCurrentDirectory();
+        if (result?.ok) {
+          targetPath = result.path;
+        }
       }
-      createNewFile(rootPath, newFileName);
+      // Fallback to default directory if still no path
+      if (!targetPath) {
+        targetPath = 'E:\\Testing_Files';
+      }
+      createNewFile(targetPath, newFileName);
     } else if (e.key === 'Escape') {
       e.preventDefault();
       setShowNewFileInput(false);
@@ -168,14 +176,22 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     }
   };
 
-  const handleNewFolderSubmit = (e: React.KeyboardEvent) => {
+  const handleNewFolderSubmit = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (!rootPath) {
-        alert('Please open a folder first');
-        return;
+      // Use rootPath if available, otherwise get current directory
+      let targetPath = rootPath;
+      if (!targetPath && (window as any).api?.getCurrentDirectory) {
+        const result = await (window as any).api.getCurrentDirectory();
+        if (result?.ok) {
+          targetPath = result.path;
+        }
       }
-      createNewFolder(rootPath, newFolderName);
+      // Fallback to default directory if still no path
+      if (!targetPath) {
+        targetPath = 'E:\\Testing_Files';
+      }
+      createNewFolder(targetPath, newFolderName);
     } else if (e.key === 'Escape') {
       e.preventDefault();
       setShowNewFolderInput(false);
@@ -439,14 +455,54 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
       
                     {/* New File Input */}
        {showNewFileInput && (
-         <div className="new-item-input">
+         <div 
+           className="new-item-input"
+           onClick={(e) => {
+             e.stopPropagation();
+             const input = e.currentTarget.querySelector('input');
+             if (input) {
+               input.focus();
+             }
+           }}
+         >
            <input
              type="text"
              placeholder="Enter file name (e.g., index.ts)"
              value={newFileName}
-             onChange={(e) => setNewFileName(e.target.value)}
-             onKeyDown={handleNewFileSubmit}
+             onChange={(e) => {
+               console.log('File input onChange:', e.target.value);
+               setNewFileName(e.target.value);
+             }}
+             onKeyDown={(e) => {
+               console.log('File input onKeyDown:', e.key);
+               if (e.key === 'Enter') {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 // Use rootPath if available, otherwise get current directory
+                 let targetPath = rootPath;
+                 if (!targetPath) {
+                   targetPath = 'E:\\Testing_Files';
+                 }
+                 createNewFile(targetPath, newFileName);
+               } else if (e.key === 'Escape') {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 setShowNewFileInput(false);
+                 setNewFileName('');
+               }
+             }}
+             onFocus={(e) => {
+               console.log('File input focused');
+             }}
+             onBlur={(e) => {
+               console.log('File input blurred');
+             }}
              autoFocus
+             style={{ 
+               pointerEvents: 'auto',
+               zIndex: 1000,
+               position: 'relative'
+             }}
            />
                        <button 
               className="close-input"
@@ -462,14 +518,54 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
 
       {/* New Folder Input */}
       {showNewFolderInput && (
-        <div className="new-item-input">
+        <div 
+          className="new-item-input"
+          onClick={(e) => {
+            e.stopPropagation();
+            const input = e.currentTarget.querySelector('input');
+            if (input) {
+              input.focus();
+            }
+          }}
+        >
           <input
             type="text"
             placeholder="Enter folder name"
             value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-            onKeyDown={handleNewFolderSubmit}
+            onChange={(e) => {
+              console.log('Folder input onChange:', e.target.value);
+              setNewFolderName(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              console.log('Folder input onKeyDown:', e.key);
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                // Use rootPath if available, otherwise get current directory
+                let targetPath = rootPath;
+                if (!targetPath) {
+                  targetPath = 'E:\\Testing_Files';
+                }
+                createNewFolder(targetPath, newFolderName);
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowNewFolderInput(false);
+                setNewFolderName('');
+              }
+            }}
+            onFocus={(e) => {
+              console.log('Folder input focused');
+            }}
+            onBlur={(e) => {
+              console.log('Folder input blurred');
+            }}
             autoFocus
+            style={{ 
+              pointerEvents: 'auto',
+              zIndex: 1000,
+              position: 'relative'
+            }}
           />
                      <button 
              className="close-input"

@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld("api", {
 
   // Folder dialog
   openFolder: () => ipcRenderer.invoke('open-folder-dialog'),
+  getCurrentDirectory: () => ipcRenderer.invoke('get-current-directory'),
   readDirTree: (rootPath: string) => ipcRenderer.invoke('read-dir-tree', rootPath),
   readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
   writeFile: (filePath: string, content: string) => ipcRenderer.invoke('write-file', filePath, content),

@@ -4,6 +4,88 @@
   box-sizing: border-box;
 }
 
+/* Global Fira Code font application */
+.code-editor-container,
+.code-textarea,
+.line-numbers,
+.line-number,
+.terminal-container,
+.right-terminal,
+.right-terminal-input,
+.command-text,
+.command-output {
+  font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace !important;
+  font-feature-settings: "liga" 1, "calt" 1;
+  font-variant-ligatures: contextual;
+  font-display: swap;
+}
+
+/* Z-index layering to ensure editor is always clickable */
+.main-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Editor area should be above terminal */
+.main-content > div:first-child {
+  position: relative;
+  z-index: 2;
+}
+
+/* Terminal should be below editor */
+.main-content > div:last-child {
+  position: relative;
+  z-index: 1;
+}
+
+/* Terminal resize handle should not block editor clicks */
+.terminal-resize-handle {
+  z-index: 1 !important;
+}
+
+/* Make terminal area non-blocking for editor clicks */
+.terminal-area {
+  pointer-events: none;
+}
+
+/* But allow pointer events on terminal content itself */
+.terminal-area .terminal-container,
+.terminal-area .terminal-resize-handle,
+.terminal-area .terminal-header,
+.terminal-area .terminal-content {
+  pointer-events: auto;
+}
+
+/* Right terminal area should also be non-blocking */
+.right-terminal-area {
+  pointer-events: none;
+}
+
+/* But allow pointer events on right terminal content */
+.right-terminal-area .right-terminal,
+.right-terminal-area .right-terminal-resize-handle,
+.right-terminal-area .right-terminal-header,
+.right-terminal-area .right-terminal-content {
+  pointer-events: auto;
+}
+
+/* Ensure sidebar is always clickable and above other elements */
+.sidebar {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* Ensure sidebar input fields are always interactive */
+.sidebar .new-item-input,
+.sidebar .search-bar,
+.sidebar input,
+.sidebar button {
+  pointer-events: auto;
+  position: relative;
+  z-index: 11;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -21,11 +103,14 @@ body {
   width: 100vw;
 }
 
-.main-content {
-  flex: 1;
+.editor-header {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 16px;
+  background: var(--tabs-background, #2d2d30);
+  border-bottom: 1px solid var(--border, #3c3c3c);
+  min-height: 40px;
 }
 
 .terminal-toggle {
@@ -45,6 +130,33 @@ body {
 
 .terminal-toggle:hover {
   background: #005a9e;
+}
+
+/* Terminal resize handle styles */
+.terminal-resize-handle {
+  transition: background-color 0.2s ease;
+}
+
+.terminal-resize-handle:hover {
+  background: var(--focus-border, #007acc) !important;
+}
+
+/* Right terminal resize handle styles */
+.right-terminal-resize-handle {
+  transition: background-color 0.2s ease;
+}
+
+.right-terminal-resize-handle:hover {
+  background: var(--focus-border, #007acc) !important;
+}
+
+/* Prevent text selection during resize */
+.terminal-resize-handle *,
+.right-terminal-resize-handle * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 

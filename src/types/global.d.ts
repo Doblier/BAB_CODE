@@ -22,6 +22,7 @@ declare global {
       
       // Folder dialog
       openFolder: () => Promise<any>;
+      getCurrentDirectory: () => Promise<any>;
       readDirTree: (rootPath: string) => Promise<any>;
       readFile: (filePath: string) => Promise<any>;
       writeFile: (filePath: string, content: string) => Promise<any>;

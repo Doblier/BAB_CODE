@@ -106,10 +106,11 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
        };
        
        readFileContent();
-     } else if (activeFile) {
+     } else if (activeFile && activeTab !== activeFile) {
+       // Only update active tab if it's different from current
        setActiveTab(activeFile);
      }
-   }, [activeFile, tabs]);
+   }, [activeFile]); // Remove tabs dependency to prevent infinite loops
 
   const closeTab = (tabPath: string) => {
     // Calculate remaining tabs first
@@ -195,6 +196,31 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
   }, [activeTab, tabs.find(t => t.path === activeTab)?.content]);
 
   const currentTab = tabs.find(tab => tab.path === activeTab);
+  
+  // Focus management - ensure focus stays on current tab
+  useEffect(() => {
+    if (activeTab && currentTab) {
+      // Small delay to ensure DOM is updated
+      const timer = setTimeout(() => {
+        const textarea = document.querySelector('.code-textarea') as HTMLTextAreaElement;
+        if (textarea && document.activeElement !== textarea) {
+          textarea.focus();
+          // Preserve cursor position if possible
+          const savedSelection = sessionStorage.getItem(`cursor-${activeTab}`);
+          if (savedSelection) {
+            try {
+              const { start, end } = JSON.parse(savedSelection);
+              textarea.setSelectionRange(start, end);
+            } catch (e) {
+              // Ignore parsing errors
+            }
+          }
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, currentTab]);
   
   // Get file icon based on extension (VS Code style)
   const getFileIcon = (fileName: string) => {
@@ -291,7 +317,16 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
            <div 
              key={tab.path} 
              className={`tab ${activeTab === tab.path ? 'active' : ''}`}
-             onClick={() => setActiveTab(tab.path)}
+             onClick={() => {
+               setActiveTab(tab.path);
+               // Focus the editor after tab switch
+               setTimeout(() => {
+                 const textarea = document.querySelector('.code-textarea') as HTMLTextAreaElement;
+                 if (textarea) {
+                   textarea.focus();
+                 }
+               }, 50);
+             }}
            >
              <span className="tab-icon">{getFileIcon(tab.name)}</span>
              <span className="tab-name">{tab.name}</span>
@@ -321,27 +356,12 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
       </div>
       <div className="editor-split">
         <div className="work-area">
-                                                             {currentTab ? (
-                <textarea
-                  value={currentTab.content}
-                  onChange={(e) => updateTabContent(currentTab.path, e.target.value)}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    background: '#1e1e1e',
-                    color: '#d4d4d4',
-                    border: 'none',
-                    outline: 'none',
-                    padding: '20px',
-                    fontFamily: 'Consolas, Monaco, monospace',
-                    fontSize: '14px',
-                    lineHeight: '1.5',
-                    resize: 'none',
-                    cursor: 'text'
-                  }}
-                  autoFocus
-                  spellCheck={false}
-                />
+                                                                                                                           {currentTab ? (
+                 <CodeEditor
+                   value={currentTab.content}
+                   onChange={(content) => updateTabContent(currentTab.path, content)}
+                   language="typescript"
+                 />
             ) : (
                            <div className="welcome-screen">
               <h2 onClick={() => {
