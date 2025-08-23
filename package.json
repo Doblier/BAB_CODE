@@ -51,6 +51,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@types/prismjs": "^1.26.5",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-search": "^0.15.0",
@@ -58,6 +59,7 @@
     "@xterm/xterm": "^5.5.0",
     "child_process": "^1.0.2",
     "lucide-react": "^0.540.0",
+    "monaco-editor": "^0.52.2",
     "node-pty": "^1.0.0",
     "prismjs": "^1.30.0",
     "react": "^19.1.1",

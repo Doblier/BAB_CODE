@@ -3,7 +3,7 @@ import './App.css';
 import Sidebar from './components/Sidebar';
 import EditorArea from './components/EditorArea';
 import EnhancedTerminal from './components/EnhancedTerminal';
-import RightTerminal from './components/RightTerminal';
+import AITerminal from './components/AITerminal';
 import ThemeSelector from './components/ThemeSelector';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -19,22 +19,33 @@ export default function App() {
 			setActiveFile(filePath);
 		}
 	};
+
+	// Handle file deletion to close corresponding tab
+	const handleFileDeleted = (filePath: string) => {
+		// If the deleted file is currently active, clear it
+		if (activeFile === filePath) {
+			setActiveFile(null);
+		}
+		// Notify EditorArea to close the tab
+		document.dispatchEvent(new CustomEvent('file-deleted', { detail: filePath }));
+	};
 	const [projectRoot, setProjectRoot] = useState<string | null>('E:\\Testing_Files');
-	const [showTerminal, setShowTerminal] = useState(true);
-	const [showRightTerminal, setShowRightTerminal] = useState(false);
+	const [showTerminal, setShowTerminal] = useState(true); // Changed to true
+	const [showAssistant, setShowAssistant] = useState(false);
 	const [terminalHeight, setTerminalHeight] = useState(() => {
 		// Load saved terminal height from localStorage, default to 300px
 		const saved = localStorage.getItem('terminal-height');
 		return saved ? parseFloat(saved) : 300;
 	});
-	const [rightTerminalWidth, setRightTerminalWidth] = useState(() => {
-		// Load saved right terminal width from localStorage, default to 300px
-		const saved = localStorage.getItem('right-terminal-width');
-		return saved ? parseFloat(saved) : 300;
-	});
 	const [isResizing, setIsResizing] = useState(false);
-	const [isResizingRight, setIsResizingRight] = useState(false);
 
+	// AI Assistant panel resize functionality
+	const [assistantWidth, setAssistantWidth] = useState(() => {
+		// Load saved assistant width from localStorage, default to 360px
+		const saved = localStorage.getItem('assistant-width');
+		return saved ? parseFloat(saved) : 360;
+	});
+	const [isResizingAssistant, setIsResizingAssistant] = useState(false);
 
 	// Handle menu actions
 	React.useEffect(() => {
@@ -63,7 +74,12 @@ export default function App() {
 						break;
 					case 'toggle-right-sidebar':
 						// Toggle right terminal
-						setShowRightTerminal(!showRightTerminal);
+						// This action is no longer used for the right terminal,
+						// but keeping it for consistency if other parts of the app use it.
+						break;
+					case 'toggle-ai-terminal':
+						// Toggle AI Assistant panel
+						setShowAssistant(!showAssistant);
 						break;
 					case 'open-settings':
 						// Open settings (placeholder for future feature)
@@ -72,6 +88,45 @@ export default function App() {
 			});
 		}
 	}, [sidebarCollapsed, showTerminal]);
+
+	// Listen for AI assistant trigger
+	React.useEffect(() => {
+		const handleAIAssistant = () => {
+			setShowAssistant(true);
+		};
+
+		document.addEventListener('trigger-ai-assistant', handleAIAssistant);
+
+		return () => {
+			document.removeEventListener('trigger-ai-assistant', handleAIAssistant);
+		};
+	}, []);
+
+	// Listen for show terminal trigger
+	React.useEffect(() => {
+		const handleShowTerminal = () => {
+			setShowTerminal(!showTerminal);
+		};
+
+		document.addEventListener('show-terminal', handleShowTerminal);
+
+		return () => {
+			document.removeEventListener('show-terminal', handleShowTerminal);
+		};
+	}, [showTerminal]);
+
+	// Listen for toggle AI assistant trigger
+	React.useEffect(() => {
+		const handleToggleAIAssistant = () => {
+			setShowAssistant(!showAssistant);
+		};
+
+		document.addEventListener('toggle-ai-assistant', handleToggleAIAssistant);
+
+		return () => {
+			document.removeEventListener('toggle-ai-assistant', handleToggleAIAssistant);
+		};
+	}, [showAssistant]);
 
 	// Terminal resize functionality
 	const handleMouseDown = (e: React.MouseEvent) => {
@@ -106,37 +161,35 @@ export default function App() {
 		setIsResizing(false);
 	};
 
-	// Right terminal resize functionality
-	const handleRightMouseDown = (e: React.MouseEvent) => {
+	// AI Assistant panel resize functionality
+	const handleAssistantMouseDown = (e: React.MouseEvent) => {
 		e.preventDefault();
-		setIsResizingRight(true);
+		e.stopPropagation();
+		setIsResizingAssistant(true);
 	};
 
-	const handleRightMouseMove = (e: MouseEvent) => {
-		if (!isResizingRight) return;
+	const handleAssistantMouseMove = (e: MouseEvent) => {
+		if (!isResizingAssistant) return;
 		
-		const container = document.querySelector('.ide-container') as HTMLElement;
-		if (container) {
-			const containerRect = container.getBoundingClientRect();
-			const containerWidth = containerRect.width;
-			const mouseX = e.clientX;
-			
-			// Calculate width from right edge
-			const distanceFromRight = containerRect.right - mouseX;
-			
-			// Set limits: minimum 200px, maximum 600px
-			const minWidth = 200;
-			const maxWidth = 600;
-			
-			if (distanceFromRight >= minWidth && distanceFromRight <= maxWidth) {
-				setRightTerminalWidth(distanceFromRight);
-				localStorage.setItem('right-terminal-width', distanceFromRight.toString());
-			}
+		const windowWidth = window.innerWidth;
+		const mouseX = e.clientX;
+		
+		// Calculate width from right edge of window
+		const distanceFromRight = windowWidth - mouseX;
+		
+		// Set limits: minimum 280px, maximum 100% of window width
+		const minWidth = 280;
+		const maxWidth = windowWidth;
+		
+		if (distanceFromRight >= minWidth && distanceFromRight <= maxWidth) {
+			setAssistantWidth(distanceFromRight);
+			// Save to localStorage
+			localStorage.setItem('assistant-width', distanceFromRight.toString());
 		}
 	};
 
-	const handleRightMouseUp = () => {
-		setIsResizingRight(false);
+	const handleAssistantMouseUp = () => {
+		setIsResizingAssistant(false);
 	};
 
 	React.useEffect(() => {
@@ -152,16 +205,16 @@ export default function App() {
 	}, [isResizing]);
 
 	React.useEffect(() => {
-		if (isResizingRight) {
-			document.addEventListener('mousemove', handleRightMouseMove);
-			document.addEventListener('mouseup', handleRightMouseUp);
+		if (isResizingAssistant) {
+			document.addEventListener('mousemove', handleAssistantMouseMove);
+			document.addEventListener('mouseup', handleAssistantMouseUp);
 			
 			return () => {
-				document.removeEventListener('mousemove', handleRightMouseMove);
-				document.removeEventListener('mouseup', handleRightMouseUp);
+				document.removeEventListener('mousemove', handleAssistantMouseMove);
+				document.removeEventListener('mouseup', handleAssistantMouseUp);
 			};
 		}
-	}, [isResizingRight]);
+	}, [isResizingAssistant]);
 
 	return (
 		<ThemeProvider>
@@ -174,6 +227,7 @@ export default function App() {
 					onLoadTree={(root) => {
 						setProjectRoot(root);
 					}}
+					onFileDeleted={handleFileDeleted}
 				/>
 
 				<div className="main-content" style={{ 
@@ -187,7 +241,9 @@ export default function App() {
 						flexDirection: 'column', 
 						flex: 1,
 						overflow: 'hidden',
-						minWidth: 0 // Allow shrinking
+						minWidth: 0, // Allow shrinking
+						marginRight: showAssistant ? `${assistantWidth}px` : '0px',
+						transition: 'margin-right 0.1s ease'
 					}}>
 						<div className="editor-header">
 							<ThemeSelector />
@@ -217,8 +273,8 @@ export default function App() {
 								/>
 							</div>
 
-							{/* Terminal Area - fixed pixel height */}
-							{showTerminal && (
+							{/* Terminal Area - only show when terminal is visible */}
+							{showTerminal && terminalHeight > 0 && (
 								<div 
 									className="terminal-area"
 									style={{ 
@@ -229,67 +285,67 @@ export default function App() {
 										borderTop: '1px solid var(--border, #3c3c3c)',
 										position: 'relative',
 										flexShrink: 0,
-										zIndex: 1
+										zIndex: 1,
+										bottom: 0
 									}}>
-								{/* Resize Handle */}
-								<div 
-									className="terminal-resize-handle"
-									style={{
-										position: 'absolute',
-										top: '-3px',
-										left: 0,
-										right: 0,
-										height: '6px',
-										cursor: 'ns-resize',
-										background: 'var(--border, #3c3c3c)',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										zIndex: 1
-									}}
-									onMouseDown={handleMouseDown}
-									title="Drag to resize terminal"
-								>
-									<div style={{
-										width: '40px',
-										height: '3px',
-										background: 'var(--sidebar-foreground, #cccccc)',
-										borderRadius: '2px',
-										opacity: 0.6
-									}} />
+									{/* Resize Handle */}
+									<div 
+										className="terminal-resize-handle"
+										style={{
+											position: 'absolute',
+											top: '-3px',
+											left: 0,
+											right: 0,
+											height: '6px',
+											cursor: 'ns-resize',
+											background: 'var(--border, #3c3c3c)',
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											zIndex: 1
+										}}
+										onMouseDown={handleMouseDown}
+										title="Drag to resize terminal"
+									>
+										<div style={{
+											width: '40px',
+											height: '3px',
+											background: 'var(--sidebar-foreground, #cccccc)',
+											borderRadius: '2px',
+											opacity: 0.6
+										}} />
+									</div>
+									
+									{/* Terminal Content */}
+									<div className="terminal-content" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+										<EnhancedTerminal onClose={() => setShowTerminal(false)} />
+									</div>
 								</div>
-								
-								{/* Terminal Content */}
-								<div className="terminal-content" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
-									<EnhancedTerminal onClose={() => setShowTerminal(false)} />
-								</div>
-							</div>
 							)}
 						</div>
 					</div>
 
-					{/* AI Terminal - Draggable Panel with Full Height */}
-					{/* This block is removed as per the edit hint */}
-
-					{/* Right Terminal - TRUE Full Height (from top to bottom) */}
-					{showRightTerminal && (
+					{/* AI Assistant Panel - positioned absolutely to extend full height */}
+					{showAssistant && (
 						<div 
-							className="right-terminal-area"
-							style={{ 
-								width: `${rightTerminalWidth}px`,
-								minWidth: '200px',
-								maxWidth: '600px',
-								height: '100%',
-								background: 'var(--terminal-background, #1e1e1e)',
-								borderLeft: '1px solid var(--border, #3c3c3c)',
-								position: 'relative',
-								flexShrink: 0,
+							className="ai-assistant-panel"
+							style={{
+								position: 'fixed',
+								right: 0,
+								top: 0,
+								bottom: 0,
+								width: `${assistantWidth}px`,
+								maxWidth: '100%',
+								zIndex: 15,
+								background: 'var(--ai-terminal-background, #1e1e1e)',
+								borderLeft: '1px solid var(--terminal-border, #3c3c3c)',
 								display: 'flex',
 								flexDirection: 'column'
-							}}>
-							{/* Right Terminal Resize Handle */}
+							}}
+						>
+							{/* AI Assistant Resize Handle */}
 							<div 
-								className="right-terminal-resize-handle"
+								className="ai-assistant-resize-handle"
 								style={{
 									position: 'absolute',
 									left: '-3px',
@@ -301,34 +357,26 @@ export default function App() {
 									display: 'flex',
 									alignItems: 'center',
 									justifyContent: 'center',
-									zIndex: 1
+									zIndex: 16
 								}}
-								onMouseDown={handleRightMouseDown}
-								title="Drag to resize right terminal"
+								onMouseDown={handleAssistantMouseDown}
+								title="Drag to resize AI Assistant panel"
 							>
 								<div style={{
-									height: '40px',
 									width: '3px',
+									height: '40px',
 									background: 'var(--sidebar-foreground, #cccccc)',
 									borderRadius: '2px',
 									opacity: 0.6
 								}} />
 							</div>
 							
-							{/* Right Terminal Content */}
-							<div className="right-terminal-content" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
-								<RightTerminal onClose={() => setShowRightTerminal(false)} />
-							</div>
+							<AITerminal 
+								onClose={() => setShowAssistant(false)}
+							/>
 						</div>
 					)}
 				</div>
-
-				<button
-					className="terminal-toggle"
-					onClick={() => setShowTerminal((v) => !v)}
-				>
-					{showTerminal ? 'Hide Terminal' : 'Show Terminal'}
-				</button>
 			</div>
 		</ThemeProvider>
 	);

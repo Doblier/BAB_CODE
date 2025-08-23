@@ -185,17 +185,27 @@
   background-color: #3c3c3c;
   border: 1px solid #5a5a5a;
   border-radius: 3px;
-  padding: 4px 8px;
-  color: #cccccc;
-  font-size: 12px;
+  padding: 6px 8px;
+  color: #ffffff;
+  font-size: 13px;
+  outline: none;
   position: relative;
   z-index: 1001;
   pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 .new-item-input input:focus {
   outline: none;
   border-color: #007acc;
+  background-color: #1e1e1e;
+}
+
+.new-item-input input::placeholder {
+  color: #888888;
 }
 
 .close-input {

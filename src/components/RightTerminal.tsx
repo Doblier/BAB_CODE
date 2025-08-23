@@ -1,136 +1,138 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { X, Send, Bot } from 'lucide-react';
 import './RightTerminal.css';
 
 interface RightTerminalProps {
-  onClose: () => void;
+	onClose: () => void;
+}
+
+interface Message {
+	id: string;
+	text: string;
+	isUser: boolean;
+	timestamp: Date;
 }
 
 const RightTerminal: React.FC<RightTerminalProps> = ({ onClose }) => {
-  const [messages, setMessages] = useState<Array<{ type: 'system' | 'user' | 'output', content: string }>>([
-    { type: 'system', content: 'Right Terminal Ready - Type commands to get started' }
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const [currentPath, setCurrentPath] = useState('E:\\BAB_CODE');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+	const [messages, setMessages] = useState<Message[]>([
+		{
+			id: '1',
+			text: "Hi! Select code or ask a question to get started.",
+			isUser: false,
+			timestamp: new Date()
+		}
+	]);
+	const [inputValue, setInputValue] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+	};
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages]);
 
-  const executeCommand = (command: string) => {
-    // Simulate command execution
-    const cmd = command.toLowerCase().trim();
-    
-    if (cmd === 'clear' || cmd === 'cls') {
-      setMessages([{ type: 'system', content: 'Right Terminal Ready - Type commands to get started' }]);
-      return;
-    }
-    
-    if (cmd === 'help') {
-      setMessages(prev => [...prev, 
-        { type: 'output', content: 'Available commands: clear, help, pwd, ls, dir, echo, date' }
-      ]);
-      return;
-    }
-    
-    if (cmd === 'pwd') {
-      setMessages(prev => [...prev, { type: 'output', content: currentPath }]);
-      return;
-    }
-    
-    if (cmd === 'ls' || cmd === 'dir') {
-      setMessages(prev => [...prev, { type: 'output', content: 'debug.txt\nindex.html\npackage.json\nREADME.md' }]);
-      return;
-    }
-    
-    if (cmd.startsWith('echo ')) {
-      const text = command.substring(5);
-      setMessages(prev => [...prev, { type: 'output', content: text }]);
-      return;
-    }
-    
-    if (cmd === 'date') {
-      const now = new Date();
-      setMessages(prev => [...prev, { type: 'output', content: now.toString() }]);
-      return;
-    }
-    
-    // Default response for unknown commands
-    setMessages(prev => [...prev, { type: 'output', content: `Command not found: ${command}` }]);
-  };
+	const handleSendMessage = async () => {
+		if (!inputValue.trim() || isLoading) return;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
+		const userMessage: Message = {
+			id: Date.now().toString(),
+			text: inputValue,
+			isUser: true,
+			timestamp: new Date()
+		};
 
-    const userCommand = inputValue.trim();
-    setInputValue('');
-    
-    // Add user command to messages
-    setMessages(prev => [...prev, { type: 'user', content: userCommand }]);
-    
-    // Execute command
-    executeCommand(userCommand);
-  };
+		setMessages(prev => [...prev, userMessage]);
+		setInputValue('');
+		setIsLoading(true);
 
-  return (
-    <div className="right-terminal">
-      {/* Right Terminal Header */}
-      <div className="right-terminal-header">
-        <div className="right-terminal-title">
-          <span className="terminal-icon">⚡</span>
-          Right Terminal
-        </div>
-        <button className="right-terminal-close" onClick={onClose}>
-          ✕
-        </button>
-      </div>
+		// Simulate AI response
+		setTimeout(() => {
+			const aiMessage: Message = {
+				id: (Date.now() + 1).toString(),
+				text: "I'm here to help you with your code! What would you like to know?",
+				isUser: false,
+				timestamp: new Date()
+			};
+			setMessages(prev => [...prev, aiMessage]);
+			setIsLoading(false);
+		}, 1000);
+	};
 
-      {/* Messages Area */}
-      <div className="right-terminal-messages">
-        {messages.map((message, index) => (
-          <div key={index} className={`right-terminal-message ${message.type}`}>
-            {message.type === 'user' && (
-              <div className="command-prompt">
-                <span className="prompt-symbol">$</span>
-                <span className="command-text">{message.content}</span>
-              </div>
-            )}
-            {message.type === 'output' && (
-              <div className="command-output">
-                {message.content}
-              </div>
-            )}
-            {message.type === 'system' && (
-              <div className="system-message">
-                {message.content}
-              </div>
-            )}
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+	const handleKeyPress = (e: React.KeyboardEvent) => {
+		if (e.key === 'Enter' && !e.shiftKey) {
+			e.preventDefault();
+			handleSendMessage();
+		}
+	};
 
-      {/* Input Area */}
-      <form className="right-terminal-input-area" onSubmit={handleSubmit}>
-        <div className="input-prompt">
-          <span className="prompt-symbol">$</span>
-        </div>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Enter command..."
-          className="right-terminal-input"
-          autoFocus
-        />
-      </form>
-    </div>
-  );
+	return (
+		<div className="ai-assistant-container">
+			{/* Header */}
+			<div className="ai-assistant-header">
+				<div className="ai-assistant-title">
+					<Bot size={20} className="ai-icon" />
+					<span>AI Assistant</span>
+				</div>
+				<button className="ai-assistant-close" onClick={onClose}>
+					<X size={16} />
+				</button>
+			</div>
+
+			{/* Messages Area */}
+			<div className="ai-assistant-messages">
+				{messages.map((message) => (
+					<div
+						key={message.id}
+						className={`ai-message ${message.isUser ? 'user-message' : 'ai-message'}`}
+					>
+						<div className="ai-message-content">
+							{message.text}
+						</div>
+						<div className="ai-message-time">
+							{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+						</div>
+					</div>
+				))}
+				{isLoading && (
+					<div className="ai-message ai-message">
+						<div className="ai-message-content">
+							<div className="typing-indicator">
+								<span></span>
+								<span></span>
+								<span></span>
+							</div>
+						</div>
+					</div>
+				)}
+				<div ref={messagesEndRef} />
+			</div>
+
+			{/* Input Area */}
+			<div className="ai-assistant-input-area">
+				<div className="ai-input-container">
+					<input
+						type="text"
+						value={inputValue}
+						onChange={(e) => setInputValue(e.target.value)}
+						onKeyPress={handleKeyPress}
+						placeholder="Ask something about your code..."
+						className="ai-input"
+						disabled={isLoading}
+					/>
+					<button
+						onClick={handleSendMessage}
+						disabled={!inputValue.trim() || isLoading}
+						className="ai-send-button"
+					>
+						<Send size={16} />
+					</button>
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default RightTerminal;

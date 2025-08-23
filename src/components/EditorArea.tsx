@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import CodeEditor from './CodeEditor';
 import './EditorArea.css';
 import { 
   FileText, FileCode, FileJson, FileImage, FileVideo, FileAudio, 
@@ -24,20 +23,25 @@ interface Tab {
 const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFolderSelect }) => {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
-  const [showAssistant, setShowAssistant] = useState<boolean>(false);
 
-  // Listen for AI assistant trigger from menu
+
+
+  // Listen for file deletion events
   React.useEffect(() => {
-    const handleAIAssistant = () => {
-      setShowAssistant(true);
+    const handleFileDeleted = (event: CustomEvent) => {
+      const deletedFilePath = event.detail;
+      // Close the tab if it exists
+      if (tabs.find(tab => tab.path === deletedFilePath)) {
+        closeTab(deletedFilePath);
+      }
     };
 
-    document.addEventListener('trigger-ai-assistant', handleAIAssistant);
+    document.addEventListener('file-deleted', handleFileDeleted as EventListener);
 
     return () => {
-      document.removeEventListener('trigger-ai-assistant', handleAIAssistant);
+      document.removeEventListener('file-deleted', handleFileDeleted as EventListener);
     };
-  }, []);
+  }, [tabs]);
 
   // Keyboard shortcuts
   React.useEffect(() => {
@@ -65,8 +69,10 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
       // Read actual file content from filesystem
       const readFileContent = async () => {
         try {
+          console.log('Reading file:', activeFile);
           if ((window as any).api?.readFile) {
             const result = await (window as any).api.readFile(activeFile);
+            console.log('File read result:', result);
             const fileName = activeFile.split(/[\\/]/).pop() || activeFile;
             
             const newTab: Tab = {
@@ -76,8 +82,10 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
               modified: false
             };
             
-            setTabs(prev => [...prev, newTab]);
-            setActiveTab(activeFile);
+                         console.log('Created new tab with content length:', newTab.content.length);
+             console.log('Tab content preview:', newTab.content.substring(0, 100));
+             setTabs(prev => [...prev, newTab]);
+             setActiveTab(activeFile);
            } else {
              // If API not available, create empty tab
              const fileName = activeFile.split(/[\\/]/).pop() || activeFile;
@@ -357,10 +365,12 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
       <div className="editor-split">
         <div className="work-area">
                                                                                                                            {currentTab ? (
-                 <CodeEditor
+                                                    <textarea
+                   className="code-editor"
                    value={currentTab.content}
-                   onChange={(content) => updateTabContent(currentTab.path, content)}
-                   language="typescript"
+                   onChange={(e) => updateTabContent(currentTab.path, e.target.value)}
+                   placeholder="Start typing your code here..."
+                   spellCheck={false}
                  />
             ) : (
                            <div className="welcome-screen">
@@ -405,43 +415,44 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
                   <h3>📁 Open Folder</h3>
                   <p>Choose a folder (default E:\ drive)</p>
                 </div>
-                <div className="feature">
-                  <h3>💻 Terminal</h3>
-                  <p>Run commands and manage your project</p>
-                </div>
-                <div className="feature ai"
-                  onClick={() => setShowAssistant(true)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowAssistant(true); }}
-                >
-                  <h3>🤖 AI Assistant</h3>
-                  <p>Ask questions, generate code, and get help</p>
-                </div>
+                                 <div className="feature"
+                   onClick={() => {
+                     // Dispatch event to toggle terminal
+                     document.dispatchEvent(new CustomEvent('show-terminal'));
+                   }}
+                   role="button"
+                   tabIndex={0}
+                   onKeyDown={(e) => { 
+                     if (e.key === 'Enter' || e.key === ' ') {
+                       document.dispatchEvent(new CustomEvent('show-terminal'));
+                     }
+                   }}
+                 >
+                   <h3>💻 Terminal</h3>
+                   <p>Toggle terminal panel</p>
+                 </div>
+                                 <div className="feature ai"
+                   onClick={() => {
+                     // Dispatch event to toggle AI Assistant
+                     document.dispatchEvent(new CustomEvent('toggle-ai-assistant'));
+                   }}
+                   role="button"
+                   tabIndex={0}
+                   onKeyDown={(e) => { 
+                     if (e.key === 'Enter' || e.key === ' ') {
+                       document.dispatchEvent(new CustomEvent('toggle-ai-assistant'));
+                     }
+                   }}
+                 >
+                   <h3>🤖 AI Assistant</h3>
+                   <p>Toggle AI Assistant panel</p>
+                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {showAssistant && (
-          <div className="assistant-panel">
-            <div className="assistant-header">
-              <span>AI Assistant</span>
-              <button className="assistant-close" onClick={() => setShowAssistant(false)}>×</button>
-            </div>
-            <div className="assistant-body">
-              <div className="assistant-messages">
-                <div className="assistant-message assistant-message--bot">
-                  Hi! Select code or ask a question to get started.
-                </div>
-              </div>
-              <div className="assistant-input">
-                <input type="text" placeholder="Ask something about your code..." />
-                <button>Send</button>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );

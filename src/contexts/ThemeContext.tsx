@@ -35,6 +35,17 @@ export interface Theme {
     terminalForeground: string;
     terminalCursor: string;
     
+    // AI Terminal colors
+    aiTerminalBackground: string;
+    aiTerminalForeground: string;
+    aiMessageUserBackground: string;
+    aiMessageUserForeground: string;
+    aiMessageAiBackground: string;
+    aiMessageAiForeground: string;
+    aiInputBackground: string;
+    aiInputForeground: string;
+    aiInputBorder: string;
+    
     // Status colors
     errorForeground: string;
     warningForeground: string;
@@ -43,6 +54,7 @@ export interface Theme {
     // Border colors
     border: string;
     focusBorder: string;
+    terminalBorder: string;
   };
 }
 
@@ -78,12 +90,23 @@ export const themes: Theme[] = [
       terminalForeground: '#d4d4d4',
       terminalCursor: '#d4d4d4',
       
+      aiTerminalBackground: '#1e1e1e',
+      aiTerminalForeground: '#d4d4d4',
+      aiMessageUserBackground: '#007acc',
+      aiMessageUserForeground: '#ffffff',
+      aiMessageAiBackground: '#2a2d2e',
+      aiMessageAiForeground: '#d4d4d4',
+      aiInputBackground: '#3c3c3c',
+      aiInputForeground: '#cccccc',
+      aiInputBorder: '#3c3c3c',
+      
       errorForeground: '#f48771',
       warningForeground: '#ffcc02',
       infoForeground: '#75beff',
       
       border: '#3c3c3c',
       focusBorder: '#007acc',
+      terminalBorder: '#3c3c3c',
     },
   },
   {
@@ -117,12 +140,23 @@ export const themes: Theme[] = [
       terminalForeground: '#000000',
       terminalCursor: '#000000',
       
+      aiTerminalBackground: '#ffffff',
+      aiTerminalForeground: '#000000',
+      aiMessageUserBackground: '#0078d4',
+      aiMessageUserForeground: '#ffffff',
+      aiMessageAiBackground: '#f5f5f5',
+      aiMessageAiForeground: '#000000',
+      aiInputBackground: '#f0f0f0',
+      aiInputForeground: '#000000',
+      aiInputBorder: '#e5e5e5',
+      
       errorForeground: '#e51400',
       warningForeground: '#bf8803',
       infoForeground: '#1976d2',
       
       border: '#e5e5e5',
       focusBorder: '#0078d4',
+      terminalBorder: '#e5e5e5',
     },
   },
   {
@@ -156,12 +190,23 @@ export const themes: Theme[] = [
       terminalForeground: '#f8f8f2',
       terminalCursor: '#f8f8f0',
       
+      aiTerminalBackground: '#272822',
+      aiTerminalForeground: '#f8f8f2',
+      aiMessageUserBackground: '#f92672',
+      aiMessageUserForeground: '#ffffff',
+      aiMessageAiBackground: '#3e3d32',
+      aiMessageAiForeground: '#f8f8f2',
+      aiInputBackground: '#49483e',
+      aiInputForeground: '#f8f8f2',
+      aiInputBorder: '#90908a',
+      
       errorForeground: '#f92672',
       warningForeground: '#fd971f',
       infoForeground: '#66d9ef',
       
       border: '#90908a',
       focusBorder: '#f92672',
+      terminalBorder: '#90908a',
     },
   },
   {
@@ -195,12 +240,23 @@ export const themes: Theme[] = [
       terminalForeground: '#f8f8f2',
       terminalCursor: '#f8f8f2',
       
+      aiTerminalBackground: '#282a36',
+      aiTerminalForeground: '#f8f8f2',
+      aiMessageUserBackground: '#ff79c6',
+      aiMessageUserForeground: '#ffffff',
+      aiMessageAiBackground: '#44475a',
+      aiMessageAiForeground: '#f8f8f2',
+      aiInputBackground: '#44475a',
+      aiInputForeground: '#f8f8f2',
+      aiInputBorder: '#6272a4',
+      
       errorForeground: '#ff5555',
       warningForeground: '#ffb86c',
       infoForeground: '#8be9fd',
       
       border: '#6272a4',
       focusBorder: '#ff79c6',
+      terminalBorder: '#6272a4',
     },
   },
   {
@@ -234,12 +290,23 @@ export const themes: Theme[] = [
       terminalForeground: '#e6edf3',
       terminalCursor: '#e6edf3',
       
+      aiTerminalBackground: '#0d1117',
+      aiTerminalForeground: '#e6edf3',
+      aiMessageUserBackground: '#58a6ff',
+      aiMessageUserForeground: '#ffffff',
+      aiMessageAiBackground: '#21262d',
+      aiMessageAiForeground: '#e6edf3',
+      aiInputBackground: '#21262d',
+      aiInputForeground: '#e6edf3',
+      aiInputBorder: '#30363d',
+      
       errorForeground: '#f85149',
       warningForeground: '#d29922',
       infoForeground: '#58a6ff',
       
       border: '#30363d',
       focusBorder: '#58a6ff',
+      terminalBorder: '#30363d',
     },
   },
   {
@@ -273,12 +340,23 @@ export const themes: Theme[] = [
       terminalForeground: '#839496',
       terminalCursor: '#839496',
       
+      aiTerminalBackground: '#002b36',
+      aiTerminalForeground: '#839496',
+      aiMessageUserBackground: '#268bd2',
+      aiMessageUserForeground: '#ffffff',
+      aiMessageAiBackground: '#073642',
+      aiMessageAiForeground: '#839496',
+      aiInputBackground: '#073642',
+      aiInputForeground: '#839496',
+      aiInputBorder: '#586e75',
+      
       errorForeground: '#dc322f',
       warningForeground: '#b58900',
       infoForeground: '#268bd2',
       
       border: '#586e75',
       focusBorder: '#268bd2',
+      terminalBorder: '#586e75',
     },
   },
 ];
@@ -350,12 +428,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.setProperty('--terminal-foreground', colors.terminalForeground);
     root.style.setProperty('--terminal-cursor', colors.terminalCursor);
     
+    root.style.setProperty('--ai-terminal-background', colors.aiTerminalBackground);
+    root.style.setProperty('--ai-terminal-foreground', colors.aiTerminalForeground);
+    root.style.setProperty('--ai-message-user-background', colors.aiMessageUserBackground);
+    root.style.setProperty('--ai-message-user-foreground', colors.aiMessageUserForeground);
+    root.style.setProperty('--ai-message-ai-background', colors.aiMessageAiBackground);
+    root.style.setProperty('--ai-message-ai-foreground', colors.aiMessageAiForeground);
+    root.style.setProperty('--ai-input-background', colors.aiInputBackground);
+    root.style.setProperty('--ai-input-foreground', colors.aiInputForeground);
+    root.style.setProperty('--ai-input-border', colors.aiInputBorder);
+    
     root.style.setProperty('--error-foreground', colors.errorForeground);
     root.style.setProperty('--warning-foreground', colors.warningForeground);
     root.style.setProperty('--info-foreground', colors.infoForeground);
     
     root.style.setProperty('--border', colors.border);
     root.style.setProperty('--focus-border', colors.focusBorder);
+    root.style.setProperty('--terminal-border', colors.terminalBorder);
   }, [currentTheme]);
 
   const setTheme = (themeId: string) => {

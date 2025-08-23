@@ -4,6 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import '@xterm/xterm/css/xterm.css';
 import './Terminal.css';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface TerminalProps {
   onClose: () => void;
@@ -23,6 +24,7 @@ interface TerminalTab {
 
 const Terminal: React.FC<TerminalProps> = ({ onClose }) => {
   console.log('Terminal component rendering...');
+  const { currentTheme } = useTheme();
   const terminalRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<string>('powershell');
   const [tabs, setTabs] = useState<TerminalTab[]>([
@@ -106,9 +108,9 @@ const Terminal: React.FC<TerminalProps> = ({ onClose }) => {
         fontSize: 14,
         fontFamily: 'Consolas, "Courier New", monospace',
         theme: {
-          background: '#1e1e1e',
-          foreground: '#ffffff',
-          cursor: '#ffffff',
+          background: currentTheme.colors.terminalBackground,
+          foreground: currentTheme.colors.terminalForeground,
+          cursor: currentTheme.colors.terminalCursor,
           black: '#000000',
           red: '#cd3131',
           green: '#0dbc79',

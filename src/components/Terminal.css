@@ -1,15 +1,15 @@
 .terminal-container {
   height: 300px;
-  background-color: #1e1e1e;
-  border-top: 1px solid #3c3c3c;
+  background-color: var(--terminal-background, #1e1e1e);
+  border-top: 1px solid var(--terminal-border, #3c3c3c);
   display: flex;
   flex-direction: column;
 }
 
 .terminal-header {
   height: 35px;
-  background-color: #2d2d30;
-  border-bottom: 1px solid #3c3c3c;
+  background-color: var(--tabs-background, #2d2d30);
+  border-bottom: 1px solid var(--terminal-border, #3c3c3c);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,11 +29,11 @@
   align-items: center;
   padding: 0 15px;
   height: 30px;
-  background-color: #2d2d30;
-  border-right: 1px solid #3c3c3c;
+  background-color: var(--tabs-background, #2d2d30);
+  border-right: 1px solid var(--terminal-border, #3c3c3c);
   cursor: pointer;
   font-size: 12px;
-  color: #cccccc;
+  color: var(--sidebar-foreground, #cccccc);
   transition: background-color 0.2s;
   min-width: 120px;
   max-width: 150px;
@@ -41,13 +41,13 @@
 }
 
 .terminal-tab:hover {
-  background-color: #3c3c3c;
+  background-color: var(--tab-inactive, #3c3c3c);
 }
 
 .terminal-tab.active {
-  background-color: #1e1e1e;
-  color: #ffffff;
-  border-bottom: 2px solid #007acc;
+  background-color: var(--tab-active, #1e1e1e);
+  color: var(--terminal-foreground, #ffffff);
+  border-bottom: 2px solid var(--focus-border, #007acc);
 }
 
 .terminal-tab .tab-name {
@@ -61,7 +61,7 @@
 .terminal-tab .close-tab {
   background: none;
   border: none;
-  color: #cccccc;
+  color: var(--sidebar-foreground, #cccccc);
   cursor: pointer;
   font-size: 14px;
   padding: 2px 5px;
@@ -83,7 +83,7 @@
 .add-tab {
   background: none;
   border: none;
-  color: #cccccc;
+  color: var(--sidebar-foreground, #cccccc);
   cursor: pointer;
   font-size: 16px;
   padding: 5px 10px;
@@ -100,7 +100,7 @@
 .terminal-close {
   background: none;
   border: none;
-  color: #cccccc;
+  color: var(--sidebar-foreground, #cccccc);
   cursor: pointer;
   font-size: 16px;
   padding: 2px 5px;
@@ -192,16 +192,16 @@
 }
 
 .terminal-tabs::-webkit-scrollbar-track {
-  background: #2d2d30;
+  background: var(--tabs-background, #2d2d30);
 }
 
 .terminal-tabs::-webkit-scrollbar-thumb {
-  background: #424242;
+  background: var(--terminal-border, #424242);
   border-radius: 2px;
 }
 
 .terminal-tabs::-webkit-scrollbar-thumb:hover {
-  background: #4f4f4f;
+  background: var(--focus-border, #4f4f4f);
 }
 
 /* Scrollbar styling for terminal output */
@@ -210,14 +210,14 @@
 }
 
 .terminal-output::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--terminal-background, #1e1e1e);
 }
 
 .terminal-output::-webkit-scrollbar-thumb {
-  background: #424242;
+  background: var(--terminal-border, #424242);
   border-radius: 4px;
 }
 
 .terminal-output::-webkit-scrollbar-thumb:hover {
-  background: #4f4f4f;
+  background: var(--focus-border, #4f4f4f);
 } 

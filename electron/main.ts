@@ -2,15 +2,30 @@ import { app, BrowserWindow, ipcMain, dialog, Menu } from "electron";
 import * as pty from "node-pty";
 import { spawn, ChildProcess } from "child_process";
 import * as os from "os";
-import path from "node:path";
-import fs from "node:fs";
-import { fileURLToPath } from "node:url";
+import * as path from "path";
+import * as fs from "fs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Use path.resolve to get the correct directory
+const __dirname = path.resolve();
 
 // Store terminal processes and main window (hybrid: node-pty or child_process)
 const terminalProcesses = new Map<string, pty.IPty | ChildProcess>();
 let mainWindow: BrowserWindow | null = null;
+
+// Force dark theme for Windows
+function forceDarkTheme() {
+  if (process.platform === 'win32') {
+    // Set Windows dark mode for this app
+    try {
+      const { execSync } = require('child_process');
+      // Set dark mode for the application
+      execSync('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" /v "AppsUseLightTheme" /t REG_DWORD /d 0 /f', { stdio: 'ignore' });
+    } catch (error) {
+      // Ignore registry errors
+      console.log('Could not set dark theme via registry');
+    }
+  }
+}
 
 function createMenu() {
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -98,74 +113,58 @@ function createMenu() {
            click: () => {
              mainWindow?.webContents.send('menu-action', 'toggle-right-sidebar');
            }
-         },
-         { type: 'separator' },
+         }
+       ]
+     },
+     {
+       label: 'Terminal',
+       submenu: [
          {
-           label: 'Settings',
-           accelerator: 'Ctrl+,',
+           label: 'New Terminal',
+           accelerator: 'Ctrl+`',
            click: () => {
-             mainWindow?.webContents.send('menu-action', 'open-settings');
+             mainWindow?.webContents.send('menu-action', 'new-terminal');
+           }
+         },
+         {
+           label: 'AI Terminal',
+           accelerator: 'Ctrl+Shift+A',
+           click: () => {
+             mainWindow?.webContents.send('menu-action', 'toggle-ai-terminal');
            }
          }
        ]
      },
-    {
-      label: 'Terminal',
-      submenu: [
-        {
-          label: 'New Terminal',
-          accelerator: 'Ctrl+`',
-          click: () => {
-            mainWindow?.webContents.send('menu-action', 'new-terminal');
-          }
-        },
-        {
-          label: 'AI Terminal',
-          accelerator: 'Ctrl+Shift+`',
-          click: () => {
-            mainWindow?.webContents.send('menu-action', 'ai-terminal');
-          }
-        }
-      ]
-    },
-         {
+     {
        label: 'Window',
        submenu: [
          { role: 'minimize' },
-         { role: 'close' },
-         { type: 'separator' },
+         { role: 'close' }
+       ]
+     },
+     {
+       label: 'Help',
+       submenu: [
          {
-           label: 'Maximize/Restore',
-           accelerator: 'F11',
+           label: 'About',
            click: () => {
-             if (mainWindow?.isMaximized()) {
-               mainWindow.unmaximize();
-             } else {
-               mainWindow?.maximize();
-             }
+             dialog.showMessageBox(mainWindow!, {
+               type: 'info',
+               title: 'About BAB Code Editor',
+               message: 'BAB Code Editor',
+               detail: 'A modern code editor built with Electron and React'
+             });
            }
          }
        ]
-     },
-    {
-      label: 'Help',
-      submenu: [
-        {
-          label: 'About BAB Code Editor',
-          click: () => {
-            dialog.showMessageBox(mainWindow!, {
-              type: 'info',
-              title: 'About BAB Code Editor',
-              message: 'BAB Code Editor',
-              detail: 'A modern code editor built with Electron and React'
-            });
-          }
-        }
-      ]
-    }
-  ];
+     }
+   ];
 
   const menu = Menu.buildFromTemplate(template);
+  
+  // Set dark theme for menu
+  // Note: Electron automatically adapts to system theme on most platforms
+  
   Menu.setApplicationMenu(menu);
 }
 
@@ -175,12 +174,21 @@ function createWindow() {
     height: 720,
     title: "BAB Code Editor",
     autoHideMenuBar: false,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      sandbox: false,
-      nodeIntegration: false
-    }
+    backgroundColor: '#1e1e1e', // Dark background
+    titleBarStyle: 'default',
+    // Windows-specific dark theme settings
+    darkTheme: true,
+    // Force dark mode for Windows
+    ...(process.platform === 'win32' && {
+      titleBarOverlay: false,
+      titleBarStyle: 'default'
+    }),
+         webPreferences: {
+       preload: path.join(__dirname, "dist-electron", "electron", "preload.js"),
+       contextIsolation: true,
+       sandbox: false,
+       nodeIntegration: false
+     }
   });
 
   // Auto-detect Vite dev server port
@@ -204,17 +212,17 @@ function createWindow() {
   
   if (devUrl) {
     mainWindow.loadURL(devUrl).catch(err => {
-      mainWindow?.loadFile(path.join(__dirname, "../dist/index.html"));
+      mainWindow?.loadFile(path.join(__dirname, "dist", "index.html"));
     });
   } else {
     findViteServer().then(url => {
       if (url) {
         mainWindow?.loadURL(url);
       } else {
-        mainWindow?.loadFile(path.join(__dirname, "../dist/index.html"));
+        mainWindow?.loadFile(path.join(__dirname, "dist", "index.html"));
       }
     }).catch(err => {
-      mainWindow?.loadFile(path.join(__dirname, "../dist/index.html"));
+      mainWindow?.loadFile(path.join(__dirname, "dist", "index.html"));
     });
   }
 
@@ -695,6 +703,9 @@ ipcMain.handle('close-terminal', async (event, terminalId: string) => {
 
 
 app.whenReady().then(() => {
+  // Force dark theme for Windows
+  forceDarkTheme();
+  
   createMenu();
   createWindow();
   app.on("activate", () => {

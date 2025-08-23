@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import './Sidebar.css';
 import { 
   FileText, FileCode, FileJson, FileImage, FileVideo, FileAudio, 
@@ -13,6 +13,7 @@ interface SidebarProps {
   onFileSelect: (filePath: string) => void;
   rootPath?: string | null;
   onLoadTree?: (root: string) => void;
+  onFileDeleted?: (filePath: string) => void;
 }
 
 interface FileNode {
@@ -22,7 +23,7 @@ interface FileNode {
   children?: FileNode[];
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, rootPath, onLoadTree }) => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, rootPath, onLoadTree, onFileDeleted }) => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [files, setFiles] = useState<FileNode[]>([]);
   // Hover actions removed; icons are now in the header
@@ -124,6 +125,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
         const res = await (window as any).api.createFile(parentPath, fileName.trim());
         if (!res?.ok) {
           alert(res?.error || 'Failed to create file');
+        } else {
+          // Always refresh the tree to show the new file
+          refreshTree();
         }
       } else {
         // Simulated file creation
@@ -131,7 +135,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     } finally {
       setNewFileName('');
       setShowNewFileInput(false);
-      refreshTree();
     }
   };
 
@@ -142,6 +145,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
         const res = await (window as any).api.createFolder(parentPath, folderName.trim());
         if (!res?.ok) {
           alert(res?.error || 'Failed to create folder');
+        } else {
+          // Always refresh the tree to show the new folder
+          refreshTree();
         }
       } else {
         // Simulated folder creation
@@ -149,25 +155,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
     } finally {
       setNewFolderName('');
       setShowNewFolderInput(false);
-      refreshTree();
     }
   };
 
   const handleNewFileSubmit = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Use rootPath if available, otherwise get current directory
-      let targetPath = rootPath;
-      if (!targetPath && (window as any).api?.getCurrentDirectory) {
-        const result = await (window as any).api.getCurrentDirectory();
-        if (result?.ok) {
-          targetPath = result.path;
-        }
-      }
-      // Fallback to default directory if still no path
-      if (!targetPath) {
-        targetPath = 'E:\\Testing_Files';
-      }
+      // Always create files in the root directory (E:\Testing_Files)
+      const targetPath = 'E:\\Testing_Files';
       createNewFile(targetPath, newFileName);
     } else if (e.key === 'Escape') {
       e.preventDefault();
@@ -179,18 +174,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
   const handleNewFolderSubmit = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Use rootPath if available, otherwise get current directory
-      let targetPath = rootPath;
-      if (!targetPath && (window as any).api?.getCurrentDirectory) {
-        const result = await (window as any).api.getCurrentDirectory();
-        if (result?.ok) {
-          targetPath = result.path;
-        }
-      }
-      // Fallback to default directory if still no path
-      if (!targetPath) {
-        targetPath = 'E:\\Testing_Files';
-      }
+      // Always create folders in the root directory (E:\Testing_Files)
+      const targetPath = 'E:\\Testing_Files';
       createNewFolder(targetPath, newFolderName);
     } else if (e.key === 'Escape') {
       e.preventDefault();
@@ -267,6 +252,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
         const result = await window.api.deleteFile(contextMenu.targetNode.path);
         if (result.ok) {
           alert(`Deleted ${contextMenu.targetNode.name}`);
+          // Notify parent component that file was deleted
+          if (contextMenu.targetNode.type === 'file') {
+            onFileDeleted && onFileDeleted(contextMenu.targetNode.path);
+          }
           refreshTree();
         } else {
           alert('Failed to delete: ' + result.error);
@@ -454,57 +443,27 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
       </div>
       
                     {/* New File Input */}
-       {showNewFileInput && (
-         <div 
-           className="new-item-input"
-           onClick={(e) => {
-             e.stopPropagation();
-             const input = e.currentTarget.querySelector('input');
-             if (input) {
-               input.focus();
-             }
-           }}
-         >
-           <input
-             type="text"
-             placeholder="Enter file name (e.g., index.ts)"
-             value={newFileName}
-             onChange={(e) => {
-               console.log('File input onChange:', e.target.value);
-               setNewFileName(e.target.value);
-             }}
-             onKeyDown={(e) => {
-               console.log('File input onKeyDown:', e.key);
-               if (e.key === 'Enter') {
-                 e.preventDefault();
-                 e.stopPropagation();
-                 // Use rootPath if available, otherwise get current directory
-                 let targetPath = rootPath;
-                 if (!targetPath) {
-                   targetPath = 'E:\\Testing_Files';
-                 }
-                 createNewFile(targetPath, newFileName);
-               } else if (e.key === 'Escape') {
-                 e.preventDefault();
-                 e.stopPropagation();
-                 setShowNewFileInput(false);
-                 setNewFileName('');
-               }
-             }}
-             onFocus={(e) => {
-               console.log('File input focused');
-             }}
-             onBlur={(e) => {
-               console.log('File input blurred');
-             }}
-             autoFocus
-             style={{ 
-               pointerEvents: 'auto',
-               zIndex: 1000,
-               position: 'relative'
-             }}
-           />
-                       <button 
+        {showNewFileInput && (
+          <div className="new-item-input">
+            <input
+              type="text"
+              placeholder="Enter file name (e.g., index.ts)"
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  // Always create files in the root directory
+                  createNewFile('E:\\Testing_Files', newFileName);
+                } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setShowNewFileInput(false);
+                  setNewFileName('');
+                }
+              }}
+              autoFocus
+            />
+            <button 
               className="close-input"
               onClick={() => {
                 setShowNewFileInput(false);
@@ -513,71 +472,41 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
             >
               <X size={14} />
             </button>
-         </div>
-       )}
+          </div>
+        )}
 
-      {/* New Folder Input */}
-      {showNewFolderInput && (
-        <div 
-          className="new-item-input"
-          onClick={(e) => {
-            e.stopPropagation();
-            const input = e.currentTarget.querySelector('input');
-            if (input) {
-              input.focus();
-            }
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Enter folder name"
-            value={newFolderName}
-            onChange={(e) => {
-              console.log('Folder input onChange:', e.target.value);
-              setNewFolderName(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              console.log('Folder input onKeyDown:', e.key);
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                // Use rootPath if available, otherwise get current directory
-                let targetPath = rootPath;
-                if (!targetPath) {
-                  targetPath = 'E:\\Testing_Files';
+        {/* New Folder Input */}
+        {showNewFolderInput && (
+          <div className="new-item-input">
+            <input
+              type="text"
+              placeholder="Enter folder name"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  // Always create folders in the root directory
+                  createNewFolder('E:\\Testing_Files', newFolderName);
+                } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setShowNewFolderInput(false);
+                  setNewFolderName('');
                 }
-                createNewFolder(targetPath, newFolderName);
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                e.stopPropagation();
+              }}
+              autoFocus
+            />
+            <button 
+              className="close-input"
+              onClick={() => {
                 setShowNewFolderInput(false);
                 setNewFolderName('');
-              }
-            }}
-            onFocus={(e) => {
-              console.log('Folder input focused');
-            }}
-            onBlur={(e) => {
-              console.log('Folder input blurred');
-            }}
-            autoFocus
-            style={{ 
-              pointerEvents: 'auto',
-              zIndex: 1000,
-              position: 'relative'
-            }}
-          />
-                     <button 
-             className="close-input"
-             onClick={() => {
-               setShowNewFolderInput(false);
-               setNewFolderName('');
-             }}
-           >
-             <X size={14} />
-           </button>
-        </div>
-      )}
+              }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
       
       {/* Search Bar */}
       {showSearch && (

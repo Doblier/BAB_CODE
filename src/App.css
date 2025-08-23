@@ -4,6 +4,199 @@
   box-sizing: border-box;
 }
 
+/* Global CSS Variables for Theme Consistency */
+:root {
+  /* Menu Colors - Dark Theme */
+  --menu-background: #2d2d30;
+  --menu-foreground: #cccccc;
+  --menu-border: #3c3c3c;
+  --menu-hover-background: #3c3c3c;
+  --menu-separator: #3c3c3c;
+  --menu-selection-background: #094771;
+  --menu-selection-foreground: #ffffff;
+  --menu-disabled: #6a6a6a;
+  --menu-accelerator: #888888;
+}
+
+/* Force dark theme for Electron menu - Windows specific */
+* {
+  /* Force dark theme colors */
+  --menu-background: #2d2d30 !important;
+  --menu-foreground: #cccccc !important;
+  --menu-border: #3c3c3c !important;
+  --menu-hover-background: #3c3c3c !important;
+  --menu-selection-background: #094771 !important;
+  --menu-selection-foreground: #ffffff !important;
+  --menu-disabled: #6a6a6a !important;
+  --menu-accelerator: #888888 !important;
+}
+
+/* Windows-specific menu styling */
+@media (prefers-color-scheme: dark) {
+  * {
+    color-scheme: dark !important;
+  }
+}
+
+/* Force dark mode for all elements */
+html, body {
+  color-scheme: dark !important;
+  background-color: #1e1e1e !important;
+  color: #cccccc !important;
+}
+
+/* Comprehensive Electron Menu Styling */
+.menu-bar {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+  border-bottom: 1px solid var(--menu-border) !important;
+}
+
+/* Menu items */
+.menu-item {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+  border: none !important;
+  padding: 4px 8px !important;
+}
+
+.menu-item:hover {
+  background-color: var(--menu-hover-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+.menu-item:active {
+  background-color: var(--menu-selection-background) !important;
+  color: var(--menu-selection-foreground) !important;
+}
+
+.menu-item:disabled {
+  color: var(--menu-disabled) !important;
+  background-color: var(--menu-background) !important;
+}
+
+/* Menu separators */
+.menu-separator {
+  background-color: var(--menu-separator) !important;
+  height: 1px !important;
+  margin: 2px 0 !important;
+}
+
+/* Submenu styling */
+.submenu {
+  background-color: var(--menu-background) !important;
+  border: 1px solid var(--menu-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  padding: 4px 0 !important;
+}
+
+/* Menu checkmarks and radio buttons */
+.menu-checkmark {
+  color: var(--menu-foreground) !important;
+}
+
+.menu-radio {
+  color: var(--menu-foreground) !important;
+}
+
+/* AI Assistant Resize Handle */
+.ai-assistant-resize-handle {
+  transition: background-color 0.2s ease;
+}
+
+.ai-assistant-resize-handle:hover {
+  background: var(--menu-hover-background, #3c3c3c) !important;
+}
+
+.ai-assistant-resize-handle:active {
+  background: var(--menu-selection-background, #094771) !important;
+}
+
+/* Prevent text selection during resize */
+.ai-assistant-panel {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Menu accelerators (keyboard shortcuts) */
+.menu-accelerator {
+  color: var(--menu-accelerator) !important;
+  font-size: 0.9em !important;
+}
+
+/* Override Electron's default menu colors */
+body {
+  /* Force dark theme for menu */
+  color: var(--menu-foreground) !important;
+  background-color: var(--editor-background, #1e1e1e);
+  color-scheme: dark !important;
+}
+
+/* Menu popup styling */
+.menu-popup {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+  border: 1px solid var(--menu-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Menu item styling */
+.menu-item {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+.menu-item:hover {
+  background-color: var(--menu-hover-background) !important;
+}
+
+.menu-item:active {
+  background-color: var(--menu-selection-background) !important;
+  color: var(--menu-selection-foreground) !important;
+}
+
+/* Additional Electron menu overrides */
+.menu {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+.menu > * {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+/* Menu bar items */
+.menu-bar > * {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+/* Menu dropdowns */
+.menu-dropdown {
+  background-color: var(--menu-background) !important;
+  border: 1px solid var(--menu-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Body styling with menu colors */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--editor-background, #1e1e1e);
+  color: var(--menu-foreground, #ffffff);
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+}
+
 /* Global Fira Code font application */
 .code-editor-container,
 .code-textarea,
@@ -24,6 +217,10 @@
 .main-content {
   position: relative;
   z-index: 1;
+  height: 100vh !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
 }
 
 /* Editor area should be above terminal */
@@ -59,6 +256,15 @@
 /* Right terminal area should also be non-blocking */
 .right-terminal-area {
   pointer-events: none;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  position: fixed !important;
+  overflow: hidden !important;
+  z-index: 2000 !important;
 }
 
 /* But allow pointer events on right terminal content */
@@ -67,6 +273,28 @@
 .right-terminal-area .right-terminal-header,
 .right-terminal-area .right-terminal-content {
   pointer-events: auto;
+}
+
+/* Ensure right terminal content takes full height */
+.right-terminal-content {
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* AI Terminal - Full height from top to bottom */
+.ai-terminal-area {
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+.ai-terminal-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* Ensure sidebar is always clickable and above other elements */
@@ -86,21 +314,13 @@
   z-index: 11;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #1e1e1e;
-  color: #ffffff;
-  overflow: hidden;
-}
-
 .ide-container {
   display: flex;
-  height: 100vh;
-  width: 100vw;
+  height: 100vh !important;
+  width: 100vw !important;
+  background-color: var(--editor-background, #1e1e1e);
+  overflow: hidden;
+  position: relative;
 }
 
 .editor-header {

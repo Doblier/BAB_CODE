@@ -282,9 +282,9 @@ const EnhancedTerminal: React.FC<TerminalProps> = ({ onClose }) => {
         if (tabId === activeTabId || terminalRef.current.children.length === 0) {
           terminal.open(terminalRef.current);
           fitAddon.fit();
-          terminal.focus();
+          // Don't auto-focus to prevent conflicts with AI terminal
           
-          console.log(`Terminal ${tabId} mounted and focused, rows: ${terminal.rows}, cols: ${terminal.cols}`);
+          console.log(`Terminal ${tabId} mounted and fitted, rows: ${terminal.rows}, cols: ${terminal.cols}`);
         }
       }
     }, 200); // Increased timeout to ensure DOM is ready
@@ -458,15 +458,13 @@ const EnhancedTerminal: React.FC<TerminalProps> = ({ onClose }) => {
         console.log(`Mounted terminal ${tabId} during tab switch`);
       }
       
-      // Always fit and focus
+      // Always fit but don't auto-focus to prevent conflicts with AI terminal
       setTimeout(() => {
         if (tab.fitAddon) {
           tab.fitAddon.fit();
         }
-        if (tab.terminal) {
-          tab.terminal.focus();
-          console.log(`Focused terminal ${tabId}`);
-        }
+        // Only focus if user explicitly clicks on the terminal
+        console.log(`Terminal ${tabId} fitted but not auto-focused`);
       }, 50);
     }
   }, [tabs]);
@@ -791,10 +789,10 @@ const EnhancedTerminal: React.FC<TerminalProps> = ({ onClose }) => {
           console.log(`Mounting terminal ${activeTabId} for first time`);
           activeTab.terminal.open(terminalRef.current);
           activeTab.fitAddon.fit();
-          activeTab.terminal.focus();
+          // Don't auto-focus to prevent conflicts with other components
         } else {
-          console.log(`Terminal ${activeTabId} already mounted, just focusing`);
-          activeTab.terminal.focus();
+          console.log(`Terminal ${activeTabId} already mounted, not auto-focusing`);
+          // Don't auto-focus even if already mounted
         }
       }
     }
