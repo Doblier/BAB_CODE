@@ -5,6 +5,7 @@ import EditorArea from './components/EditorArea';
 import EnhancedTerminal from './components/EnhancedTerminal';
 import AITerminal from './components/AITerminal';
 import ThemeSelector from './components/ThemeSelector';
+import TopBar from './components/TopBar';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 export default function App() {
@@ -219,7 +220,53 @@ export default function App() {
 	return (
 		<ThemeProvider>
 			<div className="ide-container">
-				<Sidebar
+				<TopBar onMenuAction={(action) => {
+					switch (action) {
+						case 'new-text-file':
+							document.dispatchEvent(new CustomEvent('trigger-new-file'));
+							break;
+						case 'new-folder':
+							document.dispatchEvent(new CustomEvent('trigger-new-folder'));
+							break;
+						case 'open-folder':
+							// Handle open folder
+							break;
+						case 'save':
+							// Handle save
+							break;
+						case 'new-terminal':
+							setShowTerminal(true);
+							break;
+						case 'toggle-ai-terminal':
+							setShowAssistant(!showAssistant);
+							break;
+						case 'reload':
+							window.location.reload();
+							break;
+						case 'toggleDevTools':
+							if ((window as any).api?.toggleDevTools) {
+								(window as any).api.toggleDevTools();
+							}
+							break;
+						case 'toggleFullScreen':
+							if (!document.fullscreenElement) {
+								document.documentElement.requestFullscreen();
+							} else {
+								document.exitFullscreen();
+							}
+							break;
+						case 'about':
+							alert('BAB Code Editor\nA modern code editor built with Electron and React');
+							break;
+						case 'exit':
+							if ((window as any).api?.exit) {
+								(window as any).api.exit();
+							}
+							break;
+					}
+				}} />
+				<div className="ide-content">
+					<Sidebar
 					collapsed={sidebarCollapsed}
 					onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
 					onFileSelect={handleFileChange}
@@ -376,6 +423,7 @@ export default function App() {
 							/>
 						</div>
 					)}
+				</div>
 				</div>
 			</div>
 		</ThemeProvider>

@@ -320,48 +320,6 @@ const EditorArea: React.FC<EditorAreaProps> = ({ activeFile, onFileChange, onFol
 
   return (
     <div className="editor-area">
-      <div className="tabs">
-                 {tabs.map(tab => (
-           <div 
-             key={tab.path} 
-             className={`tab ${activeTab === tab.path ? 'active' : ''}`}
-             onClick={() => {
-               setActiveTab(tab.path);
-               // Focus the editor after tab switch
-               setTimeout(() => {
-                 const textarea = document.querySelector('.code-textarea') as HTMLTextAreaElement;
-                 if (textarea) {
-                   textarea.focus();
-                 }
-               }, 50);
-             }}
-           >
-             <span className="tab-icon">{getFileIcon(tab.name)}</span>
-             <span className="tab-name">{tab.name}</span>
-             {tab.modified && <span className="modified-indicator">•</span>}
-                           <button 
-                className="save-tab"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  saveFile(tab.path);
-                }}
-                title="Save (Ctrl+S)"
-              >
-                <Save size={14} />
-              </button>
-              <button 
-                className="close-tab"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  closeTab(tab.path);
-                }}
-                title="Close (Ctrl+W)"
-              >
-                <X size={14} />
-              </button>
-           </div>
-         ))}
-      </div>
       <div className="editor-split">
         <div className="work-area">
                                                                                                                            {currentTab ? (

@@ -6,7 +6,7 @@
 
 /* Global CSS Variables for Theme Consistency */
 :root {
-  /* Menu Colors - Dark Theme */
+  /* Menu Colors - Will be set dynamically by theme system */
   --menu-background: #2d2d30;
   --menu-foreground: #cccccc;
   --menu-border: #3c3c3c;
@@ -20,13 +20,7 @@
 
 /* Force dark theme for Electron menu - Windows specific */
 * {
-  /* Force dark theme colors */
-  --menu-background: #2d2d30 !important;
-  --menu-foreground: #cccccc !important;
-  --menu-border: #3c3c3c !important;
-  --menu-hover-background: #3c3c3c !important;
-  --menu-selection-background: #094771 !important;
-  --menu-selection-foreground: #ffffff !important;
+  /* Force dark theme colors - now handled by theme system */
   --menu-disabled: #6a6a6a !important;
   --menu-accelerator: #888888 !important;
 }
@@ -97,6 +91,97 @@ html, body {
 
 .menu-radio {
   color: var(--menu-foreground) !important;
+}
+
+/* Additional Electron menu styling for better theme integration */
+.menu {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+.menu .menu-item {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+.menu .menu-item:hover {
+  background-color: var(--menu-selection-background) !important;
+  color: var(--menu-selection-foreground) !important;
+}
+
+/* Ensure menu popups follow theme */
+.menu-popup {
+  background-color: var(--menu-background) !important;
+  border: 1px solid var(--menu-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Menu accelerator text */
+.menu-accelerator {
+  color: var(--menu-accelerator) !important;
+}
+
+/* Force dark theme for all menu elements */
+*[role="menuitem"],
+*[role="menubar"],
+*[role="menu"] {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+*[role="menuitem"]:hover {
+  background-color: var(--menu-selection-background) !important;
+  color: var(--menu-selection-foreground) !important;
+}
+
+/* Target Electron's native menu dropdown specifically */
+.menu-popup,
+.menu-popup *,
+.menu-popup .menu-item,
+.menu-popup .menu-item:hover,
+.menu-popup .menu-item:active {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+.menu-popup .menu-item:hover {
+  background-color: var(--menu-selection-background) !important;
+  color: var(--menu-selection-foreground) !important;
+}
+
+/* Target Windows native menu elements */
+.menu,
+.menu *,
+.menu .menu-item,
+.menu .menu-item:hover {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+.menu .menu-item:hover {
+  background-color: var(--menu-selection-background) !important;
+  color: var(--menu-selection-foreground) !important;
+}
+
+/* Force dark theme for all possible menu selectors */
+div[class*="menu"],
+div[class*="Menu"],
+ul[class*="menu"],
+ul[class*="Menu"],
+li[class*="menu"],
+li[class*="Menu"] {
+  background-color: var(--menu-background) !important;
+  color: var(--menu-foreground) !important;
+}
+
+div[class*="menu"]:hover,
+div[class*="Menu"]:hover,
+ul[class*="menu"]:hover,
+ul[class*="Menu"]:hover,
+li[class*="menu"]:hover,
+li[class*="Menu"]:hover {
+  background-color: var(--menu-selection-background) !important;
+  color: var(--menu-selection-foreground) !important;
 }
 
 /* AI Assistant Resize Handle */
@@ -316,11 +401,18 @@ body {
 
 .ide-container {
   display: flex;
+  flex-direction: column;
   height: 100vh !important;
   width: 100vw !important;
   background-color: var(--editor-background, #1e1e1e);
   overflow: hidden;
   position: relative;
+}
+
+.ide-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
 .editor-header {

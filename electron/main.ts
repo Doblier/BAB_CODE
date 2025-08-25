@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import * as pty from "node-pty";
 import { spawn, ChildProcess } from "child_process";
 import * as os from "os";
@@ -27,7 +27,7 @@ function forceDarkTheme() {
   }
 }
 
-function createMenu() {
+// function createMenu() {
   const template: Electron.MenuItemConstructorOptions[] = [
          {
        label: 'File',
@@ -160,28 +160,24 @@ function createMenu() {
      }
    ];
 
-  const menu = Menu.buildFromTemplate(template);
-  
-  // Set dark theme for menu
-  // Note: Electron automatically adapts to system theme on most platforms
-  
-  Menu.setApplicationMenu(menu);
-}
+// }
 
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 720,
     title: "BAB Code Editor",
-    autoHideMenuBar: false,
+    frame: false, // Remove the native window frame completely
+    autoHideMenuBar: true, // Hide the native menu bar completely
     backgroundColor: '#1e1e1e', // Dark background
-    titleBarStyle: 'default',
+    titleBarStyle: 'hidden',
     // Windows-specific dark theme settings
     darkTheme: true,
     // Force dark mode for Windows
     ...(process.platform === 'win32' && {
       titleBarOverlay: false,
-      titleBarStyle: 'default'
+      titleBarStyle: 'hidden',
+      show: false // Don't show until ready
     }),
          webPreferences: {
        preload: path.join(__dirname, "dist-electron", "electron", "preload.js"),
@@ -230,6 +226,11 @@ function createWindow() {
   if (process.env.NODE_ENV === 'development') {
     // mainWindow.webContents.openDevTools(); // Disabled to prevent autofill errors
   }
+
+  // Show window when ready
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+  });
 }
 
 // Open folder dialog (default to Desktop on Windows)
@@ -698,6 +699,36 @@ ipcMain.handle('close-terminal', async (event, terminalId: string) => {
   return { success: false, error: 'Terminal not found' };
 });
 
+// Window control handlers
+ipcMain.handle('window-minimize', () => {
+  mainWindow?.minimize();
+  return { success: true };
+});
+
+ipcMain.handle('window-maximize', () => {
+  if (mainWindow?.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow?.maximize();
+  }
+  return { success: true };
+});
+
+ipcMain.handle('window-close', () => {
+  mainWindow?.close();
+  return { success: true };
+});
+
+ipcMain.handle('app-exit', () => {
+  app.quit();
+  return { success: true };
+});
+
+ipcMain.handle('toggle-dev-tools', () => {
+  mainWindow?.webContents.toggleDevTools();
+  return { success: true };
+});
+
 
 
 
@@ -706,7 +737,6 @@ app.whenReady().then(() => {
   // Force dark theme for Windows
   forceDarkTheme();
   
-  createMenu();
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

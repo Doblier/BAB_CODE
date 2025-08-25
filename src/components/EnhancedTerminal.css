@@ -4,7 +4,7 @@
   flex-direction: column;
   height: 100%;
   background: var(--tabs-background, #2d2d30);
-  color: var(--terminal-fg, #cccccc);
+  color: var(--terminal-foreground, #d4d4d4);
   font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', monospace;
 }
 
@@ -12,8 +12,8 @@
 .terminal-tabs {
   display: flex;
   align-items: center;
-  background: var(--tab-bar-bg, #2d2d30);
-  border-bottom: 1px solid var(--border-color, #3e3e42);
+  background: var(--tabs-background, #2d2d30);
+  border-bottom: 1px solid var(--border, #3c3c3c);
   padding: 0;
   min-height: 36px;
 }
@@ -34,8 +34,8 @@
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background: var(--tab-inactive-bg, #3c3c3c);
-  border-right: 1px solid var(--border-color, #3e3e42);
+  background: var(--tab-inactive, #3c3c3c);
+  border-right: 1px solid var(--border, #3c3c3c);
   cursor: pointer;
   min-width: 120px;
   max-width: 200px;
@@ -46,12 +46,12 @@
 }
 
 .tab:hover {
-  background: var(--tab-hover-bg, #4a4a4a);
+  background: var(--border, #3c3c3c);
 }
 
 .tab.active {
-  background: var(--tab-active-bg, #1e1e1e);
-  border-bottom: 2px solid var(--accent-color, #007acc);
+  background: var(--tab-active, #1e1e1e);
+  border-bottom: 2px solid var(--focus-border, #007acc);
 }
 
 .tab-icon {
@@ -75,7 +75,7 @@
 .tab-close {
   background: none;
   border: none;
-  color: var(--terminal-fg, #cccccc);
+  color: var(--sidebar-foreground, #cccccc);
   cursor: pointer;
   font-size: 16px;
   padding: 0;
@@ -91,7 +91,7 @@
 }
 
 .tab-close:hover {
-  background: var(--close-hover-bg, #e81123);
+  background: #e81123;
   opacity: 1;
 }
 
@@ -106,8 +106,8 @@
 }
 
 .new-tab-btn {
-  background: var(--button-bg, #0e639c);
-  color: var(--button-fg, #ffffff);
+  background: var(--focus-border, #007acc);
+  color: #ffffff;
   border: none;
   padding: 6px 10px;
   border-radius: 3px;
@@ -118,7 +118,7 @@
 }
 
 .new-tab-btn:hover {
-  background: var(--button-hover-bg, #1177bb);
+  background: #106ebe;
 }
 
 .dropdown-content {
@@ -126,11 +126,11 @@
   position: absolute;
   right: 0;
   top: 100%;
-  background: var(--dropdown-bg, #383838);
+  background: var(--sidebar-background, #252526);
   min-width: 280px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.3);
   z-index: 1000;
-  border: 1px solid var(--border-color, #3e3e42);
+  border: 1px solid var(--border, #3c3c3c);
   border-radius: 4px;
   max-height: 400px;
   overflow-y: auto;
@@ -149,7 +149,7 @@
 }
 
 .dropdown-item:hover {
-  background: var(--dropdown-hover-bg, #4a4a4a);
+  background: var(--selection, #264f78);
 }
 
 .shell-icon {
@@ -197,7 +197,7 @@
   flex: 1;
   background: var(--input-bg, #2d2d30);
   border: 1px solid var(--border-color, #3e3e42);
-  color: var(--terminal-fg, #cccccc);
+  color: var(--terminal-foreground, #d4d4d4);
   padding: 4px 8px;
   font-size: 12px;
   border-radius: 3px;
@@ -211,7 +211,7 @@
 .terminal-search button {
   background: none;
   border: none;
-  color: var(--terminal-fg, #cccccc);
+  color: var(--terminal-foreground, #d4d4d4);
   cursor: pointer;
   font-size: 16px;
   padding: 4px 8px;
@@ -282,7 +282,7 @@
   visibility: visible !important;
   opacity: 1 !important;
   background-color: var(--terminal-background, #1e1e1e) !important;
-  color: #cccccc !important;
+  color: var(--terminal-foreground, #d4d4d4) !important;
 }
 
 /* Ensure XTerm rows are visible */

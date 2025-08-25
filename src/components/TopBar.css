@@ -1,0 +1,312 @@
+.top-bar {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 0 0 8px;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+  z-index: 1000;
+  gap: 8px;
+  background-color: var(--menu-background, #2d2d30);
+  color: var(--menu-foreground, #cccccc);
+  border-bottom: 1px solid var(--menu-border, #3c3c3c);
+  flex-shrink: 0;
+}
+
+/* Left Section - Menu Bar */
+.menu-section {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.app-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.1s ease;
+}
+
+.app-icon:hover {
+  background-color: var(--selection);
+}
+
+.icon-cube {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(45deg, #007acc, #005a9e);
+  border-radius: 2px;
+  position: relative;
+}
+
+.icon-cube::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(45deg, #007acc, #005a9e);
+  border-radius: 2px;
+  opacity: 0.3;
+  z-index: -1;
+}
+
+.menu-item-container {
+  position: relative;
+  height: 100%;
+}
+
+.menu-button {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 8px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.menu-button:hover {
+  background-color: var(--menu-hover-background, #3c3c3c) !important;
+}
+
+.menu-button.active {
+  background-color: var(--menu-selection-background, #094771);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  padding: 4px 0;
+  border-radius: 4px;
+  z-index: 1001;
+  background-color: var(--menu-background, #2d2d30);
+  border: 1px solid var(--menu-border, #3c3c3c);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease;
+  box-shadow: none;
+}
+
+.dropdown-item:hover {
+  background-color: var(--menu-hover-background, #3c3c3c) !important;
+}
+
+.item-label {
+  flex: 1;
+}
+
+.item-accelerator {
+  margin-left: 16px;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* Middle Section - Navigation and Search */
+.center-section {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  justify-content: center;
+}
+
+.navigation-arrows {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background-color 0.1s ease;
+  box-shadow: none;
+  margin: 0;
+}
+
+.nav-button:hover {
+  background-color: var(--menu-hover-background, #3c3c3c);
+}
+
+.top-bar .search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 300px;
+  max-width: 600px;
+  flex: 1;
+  margin: 0;
+  background-color: transparent;
+  text-align: center;
+}
+
+.top-bar .search-bar input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--menu-border);
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+  background-color: var(--menu-background);
+  color: var(--menu-foreground);
+  box-shadow: none;
+  text-align: center;
+}
+
+.top-bar .search-bar input::placeholder {
+  color: var(--menu-foreground);
+  opacity: 0.6;
+  text-align: center;
+}
+
+.top-bar .search-bar svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--menu-foreground);
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+}
+
+/* Right Section - Layout and Window Controls */
+.right-section {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.layout-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.layout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 100%;
+  padding: 0 8px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background-color 0.1s ease;
+  box-shadow: none;
+  margin: 0;
+}
+
+.layout-button:hover {
+  background-color: var(--menu-hover-background, #3c3c3c);
+}
+
+.settings-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 100%;
+  padding: 0 8px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background-color 0.1s ease;
+  box-shadow: none;
+  margin: 0;
+}
+
+.settings-button:hover {
+  background-color: var(--menu-hover-background, #3c3c3c);
+}
+
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-right: 0;
+}
+
+.window-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  box-shadow: none;
+  margin: 0;
+  font-size: 20px;
+}
+
+.window-button:hover {
+  background-color: var(--menu-hover-background, #3c3c3c);
+}
+
+.window-button.close:hover {
+  background-color: #e81123;
+  color: white;
+}
+
+.window-button.close {
+  border-radius: 0;
+}

@@ -251,7 +251,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
         // Use the API to delete the file/folder
         const result = await window.api.deleteFile(contextMenu.targetNode.path);
         if (result.ok) {
-          alert(`Deleted ${contextMenu.targetNode.name}`);
           // Notify parent component that file was deleted
           if (contextMenu.targetNode.type === 'file') {
             onFileDeleted && onFileDeleted(contextMenu.targetNode.path);

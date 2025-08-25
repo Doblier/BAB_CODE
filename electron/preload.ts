@@ -43,5 +43,12 @@ contextBridge.exposeInMainWorld("api", {
   createFile: (dirPath: string, fileName: string) => ipcRenderer.invoke('create-file', dirPath, fileName),
   createFolder: (dirPath: string, folderName: string) => ipcRenderer.invoke('create-folder', dirPath, folderName),
   renameFile: (oldPath: string, newPath: string) => ipcRenderer.invoke('rename-file', oldPath, newPath),
-  deleteFile: (path: string) => ipcRenderer.invoke('delete-file', path)
+  deleteFile: (path: string) => ipcRenderer.invoke('delete-file', path),
+  
+  // Window control APIs
+  minimize: () => ipcRenderer.invoke('window-minimize'),
+  maximize: () => ipcRenderer.invoke('window-maximize'),
+  close: () => ipcRenderer.invoke('window-close'),
+  exit: () => ipcRenderer.invoke('app-exit'),
+  toggleDevTools: () => ipcRenderer.invoke('toggle-dev-tools')
 });

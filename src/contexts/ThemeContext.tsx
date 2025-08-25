@@ -30,6 +30,14 @@ export interface Theme {
     tabInactive: string;
     tabBorder: string;
     
+    // Menu colors
+    menuBackground: string;
+    menuForeground: string;
+    menuBorder: string;
+    menuHoverBackground: string;
+    menuSelectionBackground: string;
+    menuSelectionForeground: string;
+    
     // Terminal colors
     terminalBackground: string;
     terminalForeground: string;
@@ -67,7 +75,7 @@ export const themes: Theme[] = [
       foreground: '#d4d4d4',
       lineNumbers: '#858585',
       lineNumbersBackground: '#252526',
-      selection: '#264f78',
+      selection: '#1e1e1e',
       cursor: '#d4d4d4',
       
       keyword: '#569cd6',
@@ -85,6 +93,13 @@ export const themes: Theme[] = [
       tabActive: '#1e1e1e',
       tabInactive: '#2d2d30',
       tabBorder: '#3c3c3c',
+      
+      menuBackground: '#2d2d30',
+      menuForeground: '#cccccc',
+      menuBorder: '#3c3c3c',
+      menuHoverBackground: '#3c3c3c',
+      menuSelectionBackground: '#094771',
+      menuSelectionForeground: '#ffffff',
       
       terminalBackground: '#1e1e1e',
       terminalForeground: '#d4d4d4',
@@ -136,6 +151,13 @@ export const themes: Theme[] = [
       tabInactive: '#ececec',
       tabBorder: '#e5e5e5',
       
+      menuBackground: '#f3f3f3',
+      menuForeground: '#383838',
+      menuBorder: '#e5e5e5',
+      menuHoverBackground: '#e8e8e8',
+      menuSelectionBackground: '#0078d4',
+      menuSelectionForeground: '#ffffff',
+      
       terminalBackground: '#ffffff',
       terminalForeground: '#000000',
       terminalCursor: '#000000',
@@ -185,6 +207,13 @@ export const themes: Theme[] = [
       tabActive: '#272822',
       tabInactive: '#414339',
       tabBorder: '#90908a',
+      
+      menuBackground: '#3e3d32',
+      menuForeground: '#f8f8f2',
+      menuBorder: '#90908a',
+      menuHoverBackground: '#49483e',
+      menuSelectionBackground: '#f92672',
+      menuSelectionForeground: '#ffffff',
       
       terminalBackground: '#272822',
       terminalForeground: '#f8f8f2',
@@ -236,6 +265,13 @@ export const themes: Theme[] = [
       tabInactive: '#21222c',
       tabBorder: '#6272a4',
       
+      menuBackground: '#44475a',
+      menuForeground: '#f8f8f2',
+      menuBorder: '#6272a4',
+      menuHoverBackground: '#4a4a4a',
+      menuSelectionBackground: '#ff79c6',
+      menuSelectionForeground: '#ffffff',
+      
       terminalBackground: '#282a36',
       terminalForeground: '#f8f8f2',
       terminalCursor: '#f8f8f2',
@@ -286,6 +322,13 @@ export const themes: Theme[] = [
       tabInactive: '#21262d',
       tabBorder: '#30363d',
       
+      menuBackground: '#161b22',
+      menuForeground: '#e6edf3',
+      menuBorder: '#30363d',
+      menuHoverBackground: '#21262d',
+      menuSelectionBackground: '#58a6ff',
+      menuSelectionForeground: '#ffffff',
+      
       terminalBackground: '#0d1117',
       terminalForeground: '#e6edf3',
       terminalCursor: '#e6edf3',
@@ -335,6 +378,13 @@ export const themes: Theme[] = [
       tabActive: '#002b36',
       tabInactive: '#094656',
       tabBorder: '#586e75',
+      
+      menuBackground: '#073642',
+      menuForeground: '#839496',
+      menuBorder: '#586e75',
+      menuHoverBackground: '#094656',
+      menuSelectionBackground: '#268bd2',
+      menuSelectionForeground: '#ffffff',
       
       terminalBackground: '#002b36',
       terminalForeground: '#839496',
@@ -423,6 +473,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.setProperty('--tab-active', colors.tabActive);
     root.style.setProperty('--tab-inactive', colors.tabInactive);
     root.style.setProperty('--tab-border', colors.tabBorder);
+    
+    root.style.setProperty('--menu-background', colors.menuBackground);
+    root.style.setProperty('--menu-foreground', colors.menuForeground);
+    root.style.setProperty('--menu-border', colors.menuBorder);
+    root.style.setProperty('--menu-hover-background', colors.menuHoverBackground);
+    root.style.setProperty('--menu-selection-background', colors.menuSelectionBackground);
+    root.style.setProperty('--menu-selection-foreground', colors.menuSelectionForeground);
     
     root.style.setProperty('--terminal-background', colors.terminalBackground);
     root.style.setProperty('--terminal-foreground', colors.terminalForeground);
