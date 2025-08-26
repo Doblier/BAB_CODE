@@ -33,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
+
   
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -97,6 +98,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
       document.removeEventListener('click', handleClickOutside);
     };
   }, [contextMenu.visible]);
+
+
 
   const toggleFolder = (folderPath: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -397,7 +400,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
 
   
   return (
-    <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <div 
+      className={`sidebar ${collapsed ? 'collapsed' : ''}`}
+    >
       <div className="sidebar-header">
         <button className="toggle-btn" onClick={onToggle}>
           {collapsed ? '→' : '←'}
@@ -561,6 +566,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle, onFileSelect, ro
            </div>
         </div>
       )}
+      
+
     </div>
   );
 };

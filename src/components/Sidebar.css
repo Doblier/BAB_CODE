@@ -5,6 +5,7 @@
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
+  position: relative;
 }
 
 .sidebar.collapsed {
@@ -226,6 +227,12 @@
 .sidebar.collapsed .name {
   display: none;
 }
+
+.sidebar.collapsed .file-item {
+  display: none;
+}
+
+
 
 /* Scrollbar styling */
 .sidebar-content::-webkit-scrollbar {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   ChevronLeft, ChevronRight, Search, Settings, 
-  Layout, LayoutGrid, LayoutList, X, Minus, Square
+  PanelLeft, PanelBottom, PanelRight, X, Minus, Square
 } from 'lucide-react';
 import './TopBar.css';
 
@@ -13,9 +13,12 @@ interface MenuItem {
 
 interface TopBarProps {
   onMenuAction: (action: string) => void;
+  sidebarCollapsed?: boolean;
+  showTerminal?: boolean;
+  showAssistant?: boolean;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onMenuAction }) => {
+const TopBar: React.FC<TopBarProps> = ({ onMenuAction, sidebarCollapsed = false, showTerminal = false, showAssistant = false }) => {
   const { currentTheme } = useTheme();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState('BAB_CODE');
@@ -53,6 +56,9 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuAction }) => {
     {
       label: 'View',
       submenu: [
+        { label: 'Toggle Left Sidebar', action: 'toggle-left-sidebar', accelerator: 'Ctrl+B' },
+        { label: 'Toggle Bottom Panel', action: 'toggle-bottom-panel', accelerator: 'Ctrl+J' },
+        { label: 'Toggle AI Assistant', action: 'toggle-ai-terminal', accelerator: 'Ctrl+Shift+A' },
         { label: 'Reload', action: 'reload', accelerator: 'Ctrl+R' },
         { label: 'Toggle Developer Tools', action: 'toggleDevTools', accelerator: 'Ctrl+Shift+I' },
         { label: 'Toggle Full Screen', action: 'toggleFullScreen', accelerator: 'F11' }
@@ -204,14 +210,26 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuAction }) => {
       {/* Right Section - Layout and Window Controls */}
       <div className="right-section">
         <div className="layout-controls">
-          <button className="layout-button">
-            <Layout size={18} />
+          <button 
+            className={`layout-button ${!sidebarCollapsed ? 'sidebar-open' : ''}`}
+            onClick={() => onMenuAction('toggle-left-sidebar')}
+            title={sidebarCollapsed ? "Open Sidebar" : "Close Sidebar"}
+          >
+            <PanelLeft size={18} />
           </button>
-          <button className="layout-button">
-            <LayoutGrid size={18} />
+          <button 
+            className={`layout-button ${showTerminal ? 'terminal-open' : ''}`}
+            onClick={() => onMenuAction('toggle-bottom-panel')}
+            title={showTerminal ? "Close Terminal" : "Open Terminal"}
+          >
+            <PanelBottom size={18} />
           </button>
-          <button className="layout-button">
-            <LayoutList size={18} />
+          <button 
+            className={`layout-button ${showAssistant ? 'assistant-open' : ''}`}
+            onClick={() => onMenuAction('toggle-ai-terminal')}
+            title={showAssistant ? "Close AI Assistant" : "Open AI Assistant"}
+          >
+            <PanelRight size={18} />
           </button>
         </div>
         <button className="settings-button">

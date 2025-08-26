@@ -4,6 +4,8 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface AITerminalProps {
   onClose: () => void;
+  onWidthChange?: (width: number) => void;
+  currentWidth?: number;
 }
 
 interface Message {
@@ -11,10 +13,11 @@ interface Message {
   content: string;
 }
 
-const AITerminal: React.FC<AITerminalProps> = ({ onClose }) => {
+const AITerminal: React.FC<AITerminalProps> = ({ onClose, onWidthChange, currentWidth }) => {
   const { currentTheme } = useTheme();
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [widthInput, setWidthInput] = useState(currentWidth ? Math.round(currentWidth) : 800);
   const [messages, setMessages] = useState<Message[]>([
     { type: 'ai', content: 'Hello! I\'m your AI assistant. How can I help you today?' }
   ]);
@@ -76,6 +79,14 @@ const AITerminal: React.FC<AITerminalProps> = ({ onClose }) => {
     setMessages([{ type: 'ai', content: 'Hello! I\'m your AI assistant. How can I help you today?' }]);
   };
 
+  const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newWidth = parseInt(e.target.value);
+    if (!isNaN(newWidth) && newWidth > 0) {
+      setWidthInput(newWidth);
+      onWidthChange?.(newWidth);
+    }
+  };
+
   return (
     <div className="ai-terminal" onClick={() => {
       // When clicking anywhere in the AI terminal, focus the input
@@ -86,9 +97,26 @@ const AITerminal: React.FC<AITerminalProps> = ({ onClose }) => {
       {/* Simple Header */}
       <div className="ai-terminal-header">
         <span className="ai-terminal-title">AI Assistant</span>
-        <button className="ai-terminal-close" onClick={onClose} title="Close AI Terminal">
-          ×
-        </button>
+        <div className="ai-terminal-controls">
+          <div className="width-control">
+            <label htmlFor="width-input">Width:</label>
+            <input
+              id="width-input"
+              type="number"
+              value={widthInput}
+              onChange={handleWidthChange}
+              min="200"
+              max="2000"
+              step="10"
+              className="width-input"
+              title="Set panel width in pixels"
+            />
+            <span>px</span>
+          </div>
+          <button className="ai-terminal-close" onClick={onClose} title="Close AI Terminal">
+            ×
+          </button>
+        </div>
       </div>
 
       {/* Messages Area */}

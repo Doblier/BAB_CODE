@@ -33,6 +33,47 @@
   color: var(--terminal-foreground, #ffffff);
 }
 
+.ai-terminal-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.width-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--terminal-foreground, #ffffff);
+}
+
+.width-control label {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.width-input {
+  width: 60px;
+  height: 20px;
+  background: var(--input-background, #3c3c3c);
+  border: 1px solid var(--terminal-border, #3c3c3c);
+  border-radius: 2px;
+  color: var(--terminal-foreground, #ffffff);
+  font-size: 11px;
+  padding: 2px 4px;
+  text-align: center;
+  outline: none;
+}
+
+.width-input:focus {
+  border-color: var(--focus-border, #007acc);
+}
+
+.width-control span {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
 .ai-terminal-close {
   background: none;
   border: none;

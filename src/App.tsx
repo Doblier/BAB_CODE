@@ -220,7 +220,11 @@ export default function App() {
 	return (
 		<ThemeProvider>
 			<div className="ide-container">
-				<TopBar onMenuAction={(action) => {
+				<TopBar 
+					sidebarCollapsed={sidebarCollapsed}
+					showTerminal={showTerminal}
+					showAssistant={showAssistant}
+					onMenuAction={(action) => {
 					switch (action) {
 						case 'new-text-file':
 							document.dispatchEvent(new CustomEvent('trigger-new-file'));
@@ -236,6 +240,12 @@ export default function App() {
 							break;
 						case 'new-terminal':
 							setShowTerminal(true);
+							break;
+						case 'toggle-left-sidebar':
+							setSidebarCollapsed(!sidebarCollapsed);
+							break;
+						case 'toggle-bottom-panel':
+							setShowTerminal(!showTerminal);
 							break;
 						case 'toggle-ai-terminal':
 							setShowAssistant(!showAssistant);
@@ -266,16 +276,18 @@ export default function App() {
 					}
 				}} />
 				<div className="ide-content">
-					<Sidebar
-					collapsed={sidebarCollapsed}
-					onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-					onFileSelect={handleFileChange}
-					rootPath={projectRoot}
-					onLoadTree={(root) => {
-						setProjectRoot(root);
-					}}
-					onFileDeleted={handleFileDeleted}
-				/>
+					{!sidebarCollapsed && (
+						<Sidebar
+							collapsed={sidebarCollapsed}
+							onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+							onFileSelect={handleFileChange}
+							rootPath={projectRoot}
+							onLoadTree={(root) => {
+								setProjectRoot(root);
+							}}
+							onFileDeleted={handleFileDeleted}
+						/>
+					)}
 
 				<div className="main-content" style={{ 
 					display: 'flex', 
