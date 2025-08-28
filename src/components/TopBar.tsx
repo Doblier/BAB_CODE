@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   ChevronLeft, ChevronRight, Search, Settings, 
   PanelLeft, PanelBottom, PanelRight, X, Minus, Square
 } from 'lucide-react';
 import './TopBar.css';
+
+interface AIModel {
+  id: string;
+  name: string;
+  configured: boolean;
+  provider: string;
+}
 
 interface MenuItem {
   label: string;
@@ -16,12 +23,45 @@ interface TopBarProps {
   sidebarCollapsed?: boolean;
   showTerminal?: boolean;
   showAssistant?: boolean;
+  selectedModel?: string;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onMenuAction, sidebarCollapsed = false, showTerminal = false, showAssistant = false }) => {
+const TopBar: React.FC<TopBarProps> = ({ onMenuAction, sidebarCollapsed = false, showTerminal = false, showAssistant = false, selectedModel = 'gpt-3.5-turbo' }) => {
   const { currentTheme } = useTheme();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState('BAB_CODE');
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
+
+  // Load available models on component mount
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/models');
+        const data = await response.json();
+        
+        const models: AIModel[] = Object.entries(data.models).map(([id, modelData]: [string, any]) => ({
+          id,
+          name: modelData.name,
+          configured: modelData.configured,
+          provider: modelData.provider
+        }));
+        
+        setAvailableModels(models);
+      } catch (error) {
+        console.error('Failed to load models:', error);
+        // Fallback models
+        setAvailableModels([
+          { id: 'gpt-4', name: 'GPT-4 (OpenAI)', configured: false, provider: 'openai' },
+          { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo (OpenAI)', configured: false, provider: 'openai' },
+          { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet (Anthropic)', configured: false, provider: 'anthropic' },
+          { id: 'claude-3-haiku', name: 'Claude 3 Haiku (Anthropic)', configured: false, provider: 'anthropic' },
+          { id: 'gemini-pro', name: 'Gemini Pro (Google)', configured: false, provider: 'google' }
+        ]);
+      }
+    };
+
+    loadModels();
+  }, []);
 
   const menuItems: MenuItem[] = [
     {
@@ -93,6 +133,13 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuAction, sidebarCollapsed = false,
         { label: 'About', action: 'about' },
         { label: 'Documentation', action: 'documentation' }
       ]
+    },
+    {
+      label: 'Models',
+      submenu: availableModels.map(model => ({
+        label: `${model.name}${model.id === selectedModel ? ' ✓' : ''}${model.configured ? ' 🔑' : ' ⚠️'}`,
+        action: `select-model-${model.id}`
+      }))
     }
   ];
 
@@ -232,7 +279,11 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuAction, sidebarCollapsed = false,
             <PanelRight size={18} />
           </button>
         </div>
-        <button className="settings-button">
+        <button 
+          className="settings-button"
+          onClick={() => onMenuAction('open-settings')}
+          title="Open Settings"
+        >
           <Settings size={18} />
         </button>
         <div className="window-controls">

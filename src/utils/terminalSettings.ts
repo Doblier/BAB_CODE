@@ -153,6 +153,40 @@ export class TerminalSettingsManager {
     this.updateSettings({ theme });
   }
 
+  public setFontFamily(fontFamily: string): void {
+    this.updateSettings({ fontFamily });
+  }
+
+  public setCursorStyle(cursorStyle: 'block' | 'underline' | 'bar'): void {
+    this.updateSettings({ cursorStyle });
+  }
+
+  public setCursorBlink(cursorBlink: boolean): void {
+    this.updateSettings({ cursorBlink });
+  }
+
+  public setScrollback(scrollback: number): void {
+    if (scrollback >= 100 && scrollback <= 100000) {
+      this.updateSettings({ scrollback });
+    }
+  }
+
+  public setCopyOnSelect(copyOnSelect: boolean): void {
+    this.updateSettings({ copyOnSelect });
+  }
+
+  public setPasteOnRightClick(pasteOnRightClick: boolean): void {
+    this.updateSettings({ pasteOnRightClick });
+  }
+
+  public setConfirmOnExit(confirmOnExit: boolean): void {
+    this.updateSettings({ confirmOnExit });
+  }
+
+  public setEnableBell(enableBell: boolean): void {
+    this.updateSettings({ enableBell });
+  }
+
   public getShellArgs(shellId: string): string[] {
     return this.settings.shellArgs[shellId] || [];
   }

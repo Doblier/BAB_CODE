@@ -6,11 +6,14 @@ import EnhancedTerminal from './components/EnhancedTerminal';
 import AITerminal from './components/AITerminal';
 import ThemeSelector from './components/ThemeSelector';
 import TopBar from './components/TopBar';
+import SettingsPanel from './components/SettingsPanel';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 export default function App() {
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 	const [activeFile, setActiveFile] = useState<string | null>(null);
+	const [selectedModel, setSelectedModel] = useState('gpt-3.5-turbo'); // Add selected model state
+	const [showSettings, setShowSettings] = useState(false);
 
 	// Handle file changes, including clearing active file
 	const handleFileChange = (filePath: string) => {
@@ -49,46 +52,51 @@ export default function App() {
 	const [isResizingAssistant, setIsResizingAssistant] = useState(false);
 
 	// Handle menu actions
-	React.useEffect(() => {
-		if ((window as any).api?.onMenuAction) {
-			(window as any).api.onMenuAction((action: string) => {
-				switch (action) {
-					case 'new-text-file':
-						// Trigger new file input in sidebar
-						document.dispatchEvent(new CustomEvent('trigger-new-file'));
-						break;
-					case 'new-folder':
-						// Trigger new folder input in sidebar
-						document.dispatchEvent(new CustomEvent('trigger-new-folder'));
-						break;
-					case 'new-terminal':
-						// Show terminal if hidden
-						setShowTerminal(true);
-						break;
-					case 'toggle-left-sidebar':
-						// Toggle sidebar collapse
-						setSidebarCollapsed(!sidebarCollapsed);
-						break;
-					case 'toggle-bottom-panel':
-						// Toggle terminal visibility
-						setShowTerminal(!showTerminal);
-						break;
-					case 'toggle-right-sidebar':
-						// Toggle right terminal
-						// This action is no longer used for the right terminal,
-						// but keeping it for consistency if other parts of the app use it.
-						break;
-					case 'toggle-ai-terminal':
-						// Toggle AI Assistant panel
-						setShowAssistant(!showAssistant);
-						break;
-					case 'open-settings':
-						// Open settings (placeholder for future feature)
-						break;
+	const handleMenuAction = (action: string) => {
+		switch (action) {
+			case 'new-text-file':
+				// Trigger new file input in sidebar
+				document.dispatchEvent(new CustomEvent('trigger-new-file'));
+				break;
+			case 'new-folder':
+				// Trigger new folder input in sidebar
+				document.dispatchEvent(new CustomEvent('trigger-new-folder'));
+				break;
+			case 'new-terminal':
+				// Show terminal if hidden
+				setShowTerminal(true);
+				break;
+			case 'toggle-left-sidebar':
+				// Toggle sidebar collapse
+				setSidebarCollapsed(!sidebarCollapsed);
+				break;
+			case 'toggle-bottom-panel':
+				// Toggle terminal visibility
+				setShowTerminal(!showTerminal);
+				break;
+			case 'toggle-right-sidebar':
+				// Toggle right terminal
+				// This action is no longer used for the right terminal,
+				// but keeping it for consistency if other parts of the app use it.
+				break;
+			case 'toggle-ai-terminal':
+				// Toggle AI Assistant panel
+				setShowAssistant(!showAssistant);
+				break;
+			case 'open-settings':
+				// Open settings panel
+				setShowSettings(true);
+				break;
+			default:
+				// Handle model selection
+				if (action.startsWith('select-model-')) {
+					const modelId = action.replace('select-model-', '');
+					setSelectedModel(modelId);
+					console.log('Model selected:', modelId);
 				}
-			});
+				break;
 		}
-	}, [sidebarCollapsed, showTerminal]);
+	};
 
 	// Listen for AI assistant trigger
 	React.useEffect(() => {
@@ -224,57 +232,9 @@ export default function App() {
 					sidebarCollapsed={sidebarCollapsed}
 					showTerminal={showTerminal}
 					showAssistant={showAssistant}
-					onMenuAction={(action) => {
-					switch (action) {
-						case 'new-text-file':
-							document.dispatchEvent(new CustomEvent('trigger-new-file'));
-							break;
-						case 'new-folder':
-							document.dispatchEvent(new CustomEvent('trigger-new-folder'));
-							break;
-						case 'open-folder':
-							// Handle open folder
-							break;
-						case 'save':
-							// Handle save
-							break;
-						case 'new-terminal':
-							setShowTerminal(true);
-							break;
-						case 'toggle-left-sidebar':
-							setSidebarCollapsed(!sidebarCollapsed);
-							break;
-						case 'toggle-bottom-panel':
-							setShowTerminal(!showTerminal);
-							break;
-						case 'toggle-ai-terminal':
-							setShowAssistant(!showAssistant);
-							break;
-						case 'reload':
-							window.location.reload();
-							break;
-						case 'toggleDevTools':
-							if ((window as any).api?.toggleDevTools) {
-								(window as any).api.toggleDevTools();
-							}
-							break;
-						case 'toggleFullScreen':
-							if (!document.fullscreenElement) {
-								document.documentElement.requestFullscreen();
-							} else {
-								document.exitFullscreen();
-							}
-							break;
-						case 'about':
-							alert('BAB Code Editor\nA modern code editor built with Electron and React');
-							break;
-						case 'exit':
-							if ((window as any).api?.exit) {
-								(window as any).api.exit();
-							}
-							break;
-					}
-				}} />
+					onMenuAction={handleMenuAction}
+					selectedModel={selectedModel}
+				/>
 				<div className="ide-content">
 					{!sidebarCollapsed && (
 						<Sidebar
@@ -432,12 +392,19 @@ export default function App() {
 							
 							<AITerminal 
 								onClose={() => setShowAssistant(false)}
+								selectedModel={selectedModel}
 							/>
 						</div>
 					)}
 				</div>
 				</div>
 			</div>
+
+			{/* Settings Panel */}
+			<SettingsPanel 
+				isOpen={showSettings}
+				onClose={() => setShowSettings(false)}
+			/>
 		</ThemeProvider>
 	);
 }
